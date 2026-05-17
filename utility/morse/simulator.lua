@@ -1,15 +1,16 @@
 -- simulator.lua — Morse Code Simulator
--- The user taps out morse; after a short idle the buffer decodes to a letter.
+-- Tap out morse with the buttons; press OK to look the pattern up.
 --
---   Touch:         short tap = dot   long hold = dash
---   UP   button:   dot
---   DOWN button:   dash
---   OK   button:   commit the current buffer immediately (skip the idle wait)
---   BACK button:   exit
+--   UP   : add a dot (.)
+--   DOWN : add a dash (-)
+--   OK   : look up the current buffer
+--   BACK : exit
 --
--- After LETTER_TIMEOUT_MS of no input, whatever is in the buffer is decoded.
--- Unknown patterns decode to `?`. Decoded letters accumulate in a scrolling
--- history line at the top; the most recent letter is shown big in the centre.
+-- A valid pattern shows the letter big in the centre and appends to the
+-- scrolling history. An unknown pattern shows "?" plus the failed code
+-- on the line below; the next UP / DOWN clears the error and starts a
+-- fresh entry. The buffer caps at MAX_MORSE_LEN symbols — extra presses
+-- past the cap just beep without changing the buffer.
 
 local lcd = require("uni.lcd")
 local nav = require("uni.nav")
@@ -23,9 +24,6 @@ local C_DIM   = lcd.color(110, 110, 150)
 local C_HINT  = lcd.color(160, 160, 200)
 local C_LET   = lcd.color( 80, 200, 255)
 local C_DOT   = lcd.color(255, 220,  60)
-local C_DASH  = lcd.color( 80, 220, 120)
-local C_ON    = lcd.color(255, 200,  60)
-local C_OFF   = lcd.color( 40,  40,  60)
 local C_BAD   = lcd.color(255, 110, 110)
 
 -- ── Morse table + reverse lookup ─────────────────────────
@@ -42,46 +40,36 @@ local MORSE = {
 local LOOKUP = {}
 for letter, code in pairs(MORSE) do LOOKUP[code] = letter end
 
--- ── Timing / sizing ──────────────────────────────────────
-local DASH_THRESHOLD_MS = 200    -- touch held this long counts as a dash
-local LETTER_TIMEOUT_MS = 1100   -- idle after which the buffer decodes
-local MAX_HISTORY       = 18
-local MAX_MORSE_LEN     = 6
+local MAX_HISTORY   = 18
+local MAX_MORSE_LEN = 6
 
 -- ── Layout ───────────────────────────────────────────────
-local TITLE_Y     = 0
-local INDICATOR_X = W - 8
-local INDICATOR_Y = 4
-local INDICATOR_R = 3
-local HISTORY_Y   = 14
-local BUILDING_Y  = 30
-local LETTER_SIZE = (H >= 200) and 5 or 4
-local LETTER_Y    = math.floor(H * 0.45)
+local TITLE_Y       = 0
+local HISTORY_Y     = 14
+local BUILDING_Y    = 30
+local LETTER_SIZE   = (H >= 200) and 5 or 4
+local LETTER_Y      = math.floor(H * 0.42)
 local LETTER_BAND_H = LETTER_SIZE * 10
-local HINT1_Y     = H - 22
-local HINT2_Y     = H - 12
+local ERROR_Y       = LETTER_Y + LETTER_BAND_H + 2
+local HINT1_Y       = H - 22
+local HINT2_Y       = H - 12
 
 -- ── State (declared once) ────────────────────────────────
-local history             = ""
-local current_morse       = ""
-local last_input_time     = 0
-local last_letter         = ""
-local was_touched         = false
-local touch_start         = nil
-local last_history_shown  = "\0"
-local last_morse_shown    = "\0"
-local last_letter_shown   = "\0"
-local last_indicator      = false
+local history       = ""
+local current_morse = ""
+local last_letter   = ""
+local last_error    = ""
+
+local last_history_shown = "\0"
+local last_morse_shown   = "\0"
+local last_letter_shown  = "\0"
+local last_error_shown   = "\0"
 
 -- ── Helpers (pre-allocated) ──────────────────────────────
 local function drawTitle()
   lcd.textSize(1)
   lcd.textColor(C_FG, C_BG)
   lcd.print(0, TITLE_Y, "Morse Simulator")
-end
-
-local function drawIndicator(on)
-  lcd.fillCircle(INDICATOR_X, INDICATOR_Y, INDICATOR_R, on and C_ON or C_OFF)
 end
 
 local function fitTextLeft(s, maxW)
@@ -110,7 +98,7 @@ local function drawBuilding()
   if current_morse == "" then
     lcd.textSize(1)
     lcd.textColor(C_DIM, C_BG)
-    local s = "(tap dot / hold dash)"
+    local s = "(UP = .   DOWN = -)"
     local w = lcd.textWidth(s)
     lcd.print(math.floor((W - w) / 2), BUILDING_Y + 4, s)
   else
@@ -136,17 +124,34 @@ local function drawLetter()
   lcd.textSize(1)
 end
 
+local function drawError()
+  lcd.rect(0, ERROR_Y, W, 10, C_BG)
+  if last_error == "" then return end
+  lcd.textSize(1)
+  lcd.textColor(C_BAD, C_BG)
+  local s = "no match: " .. last_error
+  local w = lcd.textWidth(s)
+  lcd.print(math.floor((W - w) / 2), ERROR_Y, s)
+end
+
 local function drawHints()
   lcd.textSize(1)
   lcd.textColor(C_HINT, C_BG)
-  lcd.print(0, HINT1_Y, "tap=dot  hold=dash  UP=.  DOWN=-")
-  lcd.print(0, HINT2_Y, "OK=commit now      BACK=exit")
+  lcd.print(0, HINT1_Y, "UP = dot    DOWN = dash")
+  lcd.print(0, HINT2_Y, "OK = lookup    BACK = exit")
 end
 
 local function recordSymbol(sym)
-  if #current_morse >= MAX_MORSE_LEN then return end
+  if #current_morse >= MAX_MORSE_LEN then
+    uni.beep(150, 120)
+    return
+  end
+  -- A new dot/dash dismisses the previous error state.
+  if last_error ~= "" then
+    last_error  = ""
+    last_letter = ""
+  end
   current_morse = current_morse .. sym
-  last_input_time = uni.millis()
   if sym == "." then
     uni.beep(950, 50)
   else
@@ -156,16 +161,21 @@ end
 
 local function commitBuffer()
   if current_morse == "" then return end
-  local letter = LOOKUP[current_morse] or "?"
-  last_letter = letter
-  if letter ~= "?" then
-    history = history .. letter
+  local letter = LOOKUP[current_morse]
+  if letter then
+    last_letter = letter
+    history     = history .. letter
     if #history > MAX_HISTORY then
       history = string.sub(history, -MAX_HISTORY)
     end
+    last_error = ""
     uni.beep(1400, 30)
   else
-    uni.beep(200, 200)
+    last_letter = "?"
+    last_error  = current_morse
+    uni.beep(400, 80)
+    uni.delay(100)
+    uni.beep(200, 150)
   end
   current_morse = ""
 end
@@ -173,34 +183,17 @@ end
 -- ── Init ─────────────────────────────────────────────────
 lcd.fillScreen(C_BG)
 drawTitle()
-drawIndicator(false)
 drawHistory();   last_history_shown = history
 drawBuilding();  last_morse_shown   = current_morse
 drawLetter();    last_letter_shown  = last_letter
+drawError();     last_error_shown   = last_error
 drawHints()
-
-last_input_time = uni.millis()
 
 -- ── Main loop ────────────────────────────────────────────
 while true do
   local btn = nav.btn()
   if btn == "back" then break end
 
-  local now         = uni.millis()
-  local touched_now = nav.isTouched()
-
-  -- Touch hold detection — start on press, decide on release.
-  if touched_now and not was_touched then
-    touch_start = now
-  elseif (not touched_now) and was_touched and touch_start ~= nil then
-    local duration = now - touch_start
-    local sym = (duration >= DASH_THRESHOLD_MS) and "-" or "."
-    recordSymbol(sym)
-    touch_start = nil
-  end
-  was_touched = touched_now
-
-  -- Button input
   if btn == "up" then
     recordSymbol(".")
   elseif btn == "down" then
@@ -209,16 +202,6 @@ while true do
     commitBuffer()
   end
 
-  -- Auto-commit after idle
-  if current_morse ~= "" and (now - last_input_time) >= LETTER_TIMEOUT_MS then
-    commitBuffer()
-  end
-
-  -- Diff-render
-  if touched_now ~= last_indicator then
-    drawIndicator(touched_now)
-    last_indicator = touched_now
-  end
   if current_morse ~= last_morse_shown then
     drawBuilding()
     last_morse_shown = current_morse
@@ -230,6 +213,10 @@ while true do
   if last_letter ~= last_letter_shown then
     drawLetter()
     last_letter_shown = last_letter
+  end
+  if last_error ~= last_error_shown then
+    drawError()
+    last_error_shown = last_error
   end
 
   uni.delay(25)
