@@ -10,6 +10,10 @@ For how to *write* a script, see the [README](README.md). For the conventions en
 
 | Path | Description |
 |---|---|
+| [utility/base-converter.lua](utility/base-converter.lua) | Enter a decimal value 0..65535, see it expressed in hex, octal, and binary (4-bit grouped) simultaneously. OK runs another conversion, BACK exits. |
+| [utility/caesar-cipher.lua](utility/caesar-cipher.lua) | Caesar-cipher encode/decode. Enter text + shift amount (negative shifts decode); both the input and the result are shown. Non-letters pass through unchanged. |
+| [utility/calculator.lua](utility/calculator.lua) | Two-operand arithmetic via modal prompts (`+`, `-`, `*`, `/`). Last 5 calculations kept in a scrolling history; divide-by-zero shows ERR. |
+| [utility/clock.lua](utility/clock.lua) | Big `HH:MM:SS` clock with weekday + date underneath. Uses `uni.time` for the device RTC; warns if not yet synced via NTP. BACK exits. |
 | [utility/coin-flip.lua](utility/coin-flip.lua) | Flip a virtual coin. OK flips with a short alternating-face animation; running tally (heads/tails) and a strip of the last flips live below the coin. BACK exits. |
 | [utility/dice-roller.lua](utility/dice-roller.lua) | Roll a virtual die — d4, d6, d8, d10, d12, d20, d100. UP/DOWN cycles the die type, OK rolls with a short animation, recent rolls collect in a history strip. BACK exits (or aborts a roll in progress). |
 | [utility/magic-8ball.lua](utility/magic-8ball.lua) | Ask a yes/no question, press OK, the ball shakes and reveals one of the 20 classic Magic 8-Ball answers tinted green/yellow/red by tone. BACK exits. |
@@ -18,12 +22,19 @@ For how to *write* a script, see the [README](README.md). For the conventions en
 | [utility/morse/training.lua](utility/morse/training.lua) | Browse the morse alphabet one letter at a time with synced audio + visual. UP/DOWN previous/next, OK replay, BACK exit. |
 | [utility/stopwatch.lua](utility/stopwatch.lua) | `MM:SS.cc` stopwatch with up to 5 stored laps. OK starts/stops, UP records a lap while running, DOWN resets when stopped, BACK exits. In-memory only — exiting clears state. |
 
+## Network
+
+| Path | Description | Save file |
+|---|---|---|
+| [network/crypto-price.lua](network/crypto-price.lua) | Fetches BTC/USD and ETH/USD from the CoinGecko public API and shows them big in the centre, auto-refreshing every 60 s. If WiFi isn't already up, prompts for SSID + password; if a saved password exists at `/unigeek/wifi/passwords/*_<SSID>.pass` (same store the eapol bruteforce writes to), it's used automatically. OK refreshes / kicks off the connect prompt, BACK exits. | — (read-only on the firmware's `/unigeek/wifi/passwords/` store) |
+
 ## Game
 
 | Path | Description | Save file |
 |---|---|---|
 | [game/higher-lower.lua](game/higher-lower.lua) | Card guessing game. A value 1–13 is shown; UP = next will be higher, DOWN = next will be lower. Ties count as correct. Wrong guess ends the run; best streak is saved. | `/unigeek/games/higher-lower.txt` (best streak) |
 | [game/invader.lua](game/invader.lua) | Space-invader clone. Move with UP/DOWN (or LEFT/RIGHT), fire with OK, BACK exits. | `/unigeek/games/invader.txt` (high score) |
+| [game/mastermind.lua](game/mastermind.lua) | 4-digit code breaker with coloured pegs. UP/DOWN cycles a digit (1–6), OK confirms and advances; OK on the fourth position submits the guess. After 10 attempts the secret is revealed. | `/unigeek/games/mastermind.txt` (lowest attempts to win) |
 | [game/reaction.lua](game/reaction.lua) | Reaction-time tester. A coloured panel cycles READY → WAIT → GO!; press OK as fast as you can after the green flash. Pressing during WAIT is a TOO-SOON fault. | `/unigeek/games/reaction.txt` (best ms) |
 | [game/simon.lua](game/simon.lua) | Repeat the growing beep sequence. UP = red, OK = blue, DOWN = green; sequence grows by one each successful round. | `/unigeek/games/simon.txt` (rounds survived) |
 | [game/snake.lua](game/snake.lua) | Classic snake with relative-turn controls. UP turns left of the snake's heading, DOWN turns right, OK pauses. Eat food, don't hit the wall or yourself. | `/unigeek/games/snake.txt` (food eaten) |

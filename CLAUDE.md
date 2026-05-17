@@ -32,7 +32,9 @@ Folder layout in this repo mirrors the on-device path. `utility/morse/generator.
 
 Globals (no require): `uni.debug`, `uni.delay`, `uni.millis`, `uni.heap`, `uni.beep`.
 
-Via `require`: `uni.lcd` (display + sprites), `uni.sd` (file I/O), `uni.nav` (buttons + touch), `uni.input` (modal text/number/hex/ip prompts), `uni.dialog` (confirm/select), `uni.notify` (toast), `uni.json`, `uni.path`, `uni.time` (RTC), `uni.config` (device settings).
+Via `require`: `uni.lcd` (display + sprites), `uni.sd` (file I/O), `uni.nav` (buttons + touch), `uni.input` (modal text/number/hex/ip prompts), `uni.dialog` (confirm/select), `uni.notify` (toast), `uni.json`, `uni.path`, `uni.time` (RTC), `uni.config` (device settings), `uni.wifi` (station-mode connect/status), `uni.http` (blocking GET/POST, TLS via setInsecure).
+
+**Network notes:** if a script calls `wifi.connect()` and succeeds, the runner auto-disconnects on exit. If WiFi was already up before the script ran, it's left alone. `http.get`/`post` require `wifi.status() == "connected"`; responses are capped at 256 KB (over-cap returns `nil, -3`).
 
 ## Hardware: default button layout
 
@@ -80,5 +82,6 @@ Follow the user's global commit style stored in `~/.claude/memory/feedback_git_c
 - **No co-author trailer.** Never append `Co-Authored-By: Claude …` or any other co-author line.
 - **Lead with a random emoji.** Pick any emoji — it does **not** need to relate to what the commit changes. The randomness is the point; don't waste cycles trying to find a "fitting" one.
 - **Short overview only.** One subject line. No bullet points, no body, no detailed explanation.
+- **Commit granularity.** Files inside folders (`utility/foo.lua`, `game/bar.lua`, `network/baz.lua`, …) get one commit per file. Files at the repo root (`README.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `SCRIPTS.md`, `map.txt`, etc.) are bundled into a single commit together.
 
 Example: `📡 initial morse generator + simulator + docs`

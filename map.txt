@@ -1,9 +1,15 @@
 game/higher-lower.lua
 game/invader.lua
+game/mastermind.lua
 game/reaction.lua
 game/simon.lua
 game/snake.lua
 game/stacker.lua
+network/crypto-price.lua
+utility/base-converter.lua
+utility/caesar-cipher.lua
+utility/calculator.lua
+utility/clock.lua
 utility/coin-flip.lua
 utility/dice-roller.lua
 utility/magic-8ball.lua

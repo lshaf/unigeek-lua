@@ -19,6 +19,7 @@ The repo's folder structure mirrors the on-device path: `utility/morse/generator
 |---|---|
 | `utility/` | Standalone tools — single-purpose scripts that do one thing well |
 | `game/` | Games and interactive demos that own state and often a high-score file |
+| `network/` | Scripts that need `uni.wifi` / `uni.http` — anything that talks to the network |
 
 File names are lowercase, no spaces. Single words are preferred (`generator.lua`, `invader.lua`); use a hyphen for multi-word (`color-picker.lua`).
 
