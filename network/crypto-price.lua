@@ -3,13 +3,15 @@
 -- 60 s and displays them. If WiFi isn't already up, the script
 -- prompts for an SSID and password, then connects.
 --
--- Password handling mirrors the firmware's WifiUtility convention:
+-- Password lookup follows the firmware's WifiUtility convention:
 -- passwords live in /unigeek/wifi/passwords/<BSSID>_<SSID>.pass (the
 -- format the eapol bruteforce uses to save cracked passwords). On
--- lookup we scan that directory for any file ending in `_<SSID>.pass`
--- so the same store works for cracked, firmware-saved, and
--- script-saved entries. New passwords entered here are written as
--- `USER_<SSID>.pass` in the same directory.
+-- lookup we scan that directory for any file ending in `_<SSID>.pass`,
+-- so cracked, firmware-saved, and manually-placed entries all work.
+-- We do NOT save passwords back from Lua — `uni.wifi` has no scan, so
+-- we can't fill in the BSSID half of the filename and would diverge
+-- from the firmware's format. Drop a file there yourself if you want
+-- auto-fill.
 --
 --   OK   : refresh now / retry on error / start the connect prompt
 --          when no wifi yet
@@ -40,8 +42,7 @@ local URL = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&
 local REFRESH_MS  = 60 * 1000
 local CONNECT_TMO = 15000
 
-local PASS_DIR    = "/unigeek/wifi/passwords"
-local PASS_PREFIX = "USER_"   -- our save prefix; lookup also matches BSSID-prefixed files
+local PASS_DIR = "/unigeek/wifi/passwords"
 
 -- ── Layout ────────────────────────────────────────────────
 local HUD_H        = 12
@@ -111,12 +112,6 @@ local function findStoredPassword(ssid)
     end
   end
   return nil
-end
-
-local function savePassword(ssid, password)
-  if not sd.exists("/unigeek/wifi") then sd.mkdir("/unigeek/wifi") end
-  if not sd.exists(PASS_DIR) then sd.mkdir(PASS_DIR) end
-  sd.write(PASS_DIR .. "/" .. PASS_PREFIX .. ssid .. ".pass", password)
 end
 
 local function drawHUD()
@@ -200,7 +195,6 @@ local function ensureWifi()
   last_ssid = ssid
 
   local pass = findStoredPassword(ssid)
-  local from_storage = (pass ~= nil)
   if not pass then
     pass = input.text("Password for " .. ssid, "")
     if pass == nil then return false end
@@ -218,7 +212,6 @@ local function ensureWifi()
     return false
   end
 
-  if not from_storage then savePassword(ssid, pass) end
   drawStatus("connected", C_GOOD)
   return true
 end
