@@ -2,7 +2,9 @@
 
 Every `.lua` file here is browseable from the device's LUA menu under the same folder structure. To add a new script, drop it under a category folder (`utility/`, `game/`, etc.) — the Lua Runner walks sub-directories automatically.
 
-For how to *write* one, see the [README](README.md). For the conventions enforced across the repo, see [CLAUDE.md](CLAUDE.md).
+When you add, rename, or remove a script, also update **[map.txt](map.txt)** at the repo root — that's the flat path list the firmware reads to enumerate everything available.
+
+For how to *write* a script, see the [README](README.md). For the conventions enforced across the repo, see [CLAUDE.md](CLAUDE.md).
 
 ## Utility
 
