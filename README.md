@@ -6,12 +6,9 @@ This README is also the guide for **writing new scripts** — for yourself or wi
 
 ## Scripts in this repo
 
-| Path | Description |
-|---|---|
-| [utility/morse/generator.lua](utility/morse/generator.lua) | Enter text via on-screen keyboard, transmit it as morse code with a flashing lamp and matching audio tones. |
-| [utility/morse/simulator.lua](utility/morse/simulator.lua) | Trainer/reference: browse the morse alphabet one letter at a time with synced audio + visual. |
+See **[SCRIPTS.md](SCRIPTS.md)** for the full catalogue of utilities and games included, with controls and save-file paths.
 
-To add a new script: drop it under a category folder (`utility/`, `game/`, etc.). The Lua Runner browses sub-directories automatically.
+To add a new script: drop it under a category folder (`utility/`, `game/`, etc.). The Lua Runner browses sub-directories automatically. Update [SCRIPTS.md](SCRIPTS.md) so the new script shows up in the index.
 
 ---
 
