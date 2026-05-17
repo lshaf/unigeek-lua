@@ -69,6 +69,10 @@ When adding a new tool, follow the same shape: one file per script, all `require
 
 The UniGeek firmware downloads scripts from this repo over WiFi — see `_fetchLuaLevel` in [../unigeek/firmware/src/screens/wifi/network/DownloadScreen.cpp](../unigeek/firmware/src/screens/wifi/network/DownloadScreen.cpp) (around line 701). The firmware reads [map.txt](map.txt) once to get a flat list of every script path in the repo, then fetches whichever ones the user selects. If you change the layout, naming, or contents of `map.txt`, the parser there is the contract you have to satisfy.
 
+## Contribution flow for human users
+
+External and self-contribution rules live in [CONTRIBUTING.md](CONTRIBUTING.md): folder conventions, the two-index sync rule, default-hardware controls, save paths, the on-device testing checklist, and commit style. When a human user asks "how do I add a script?" point them there. The rules in this CLAUDE.md and CONTRIBUTING.md mirror each other — keep them aligned if you change one.
+
 ## Git commits
 
 Follow the user's global commit style stored in `~/.claude/memory/feedback_git_commits.md`. The rules:
