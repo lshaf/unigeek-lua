@@ -49,7 +49,12 @@ When designing a script:
 
 ## Existing scripts as reference
 
-[SCRIPTS.md](SCRIPTS.md) is the user-facing catalogue of everything in the repo, grouped by category, with controls and save-file paths. **Keep it in sync** — when you add, rename, or remove a script, update SCRIPTS.md in the same change. The README intentionally does not duplicate this list; it just links to SCRIPTS.md.
+There are **two indexes** that must stay in sync with the script files:
+
+- **[SCRIPTS.md](SCRIPTS.md)** — user-facing catalogue: grouped by category, with controls and save-file paths.
+- **[map.txt](map.txt)** — flat machine-readable list. One repo-relative `.lua` path per line, no headers, no comments. The firmware reads this once to enumerate every script in the repo without having to walk sub-directory manifests.
+
+**When you add, rename, or remove a script, update both files in the same change.** The README does not duplicate either list; it just links to SCRIPTS.md.
 
 Concrete patterns to study before writing a new one:
 
@@ -62,7 +67,7 @@ When adding a new tool, follow the same shape: one file per script, all `require
 
 ## Firmware download integration
 
-The UniGeek firmware downloads scripts from this repo over WiFi — see `_fetchLuaLevel` in [../unigeek/firmware/src/screens/wifi/network/DownloadScreen.cpp](../unigeek/firmware/src/screens/wifi/network/DownloadScreen.cpp) (around line 701). If you change anything about how the firmware browses this repo (manifest format, directory listing scheme, path layout), the parser there is the contract you have to satisfy.
+The UniGeek firmware downloads scripts from this repo over WiFi — see `_fetchLuaLevel` in [../unigeek/firmware/src/screens/wifi/network/DownloadScreen.cpp](../unigeek/firmware/src/screens/wifi/network/DownloadScreen.cpp) (around line 701). The firmware reads [map.txt](map.txt) once to get a flat list of every script path in the repo, then fetches whichever ones the user selects. If you change the layout, naming, or contents of `map.txt`, the parser there is the contract you have to satisfy.
 
 ## Git commits
 
