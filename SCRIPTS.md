@@ -11,7 +11,7 @@ For how to *write* a script, see the [README](README.md). For the conventions en
 | Path | Description |
 |---|---|
 | [utility/morse/generator.lua](utility/morse/generator.lua) | Enter text via on-screen keyboard, transmit it as morse code with a flashing lamp and matching audio tones. OK replays, BACK exits. |
-| [utility/morse/simulator.lua](utility/morse/simulator.lua) | Tap out morse yourself — short touch / UP = dot, long hold / DOWN = dash. After a brief idle the buffer decodes to a letter; history accumulates in a scrolling line. OK commits immediately, BACK exits. |
+| [utility/morse/simulator.lua](utility/morse/simulator.lua) | Tap out morse with the buttons — UP = dot, DOWN = dash, OK looks up the current buffer. Valid codes append to a scrolling history; unknown codes show `?` plus the failed pattern. BACK exits. |
 | [utility/morse/training.lua](utility/morse/training.lua) | Browse the morse alphabet one letter at a time with synced audio + visual. UP/DOWN previous/next, OK replay, BACK exit. |
 
 ## Game
