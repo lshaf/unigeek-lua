@@ -1,10 +1,12 @@
 game/higher-lower.lua
 game/invader.lua
 game/mastermind.lua
+game/pong.lua
 game/reaction.lua
 game/simon.lua
 game/snake.lua
 game/stacker.lua
+game/tic-tac-toe.lua
 network/crypto-price.lua
 utility/base-converter.lua
 utility/caesar-cipher.lua
