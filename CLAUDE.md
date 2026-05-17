@@ -59,7 +59,7 @@ There are **two indexes** that must stay in sync with the script files:
 Concrete patterns to study before writing a new one:
 
 - [utility/morse/generator.lua](utility/morse/generator.lua) — modal input prompt followed by audio + visual playback. Pre-allocated helpers, overdraw for the lamp, `lcd.textColor(fg,bg)` for changing text, BACK-polling between every dot/dash so playback cancels cleanly.
-- [utility/morse/simulator.lua](utility/morse/simulator.lua) — touch hold-detection via `nav.isTouched()` edge-detection (start time on press, decide dot vs dash on release), button fallback for non-touch boards, idle-timeout auto-commit, diff-rendered regions.
+- [utility/morse/simulator.lua](utility/morse/simulator.lua) — explicit UP/DOWN/OK input with diff-rendered regions. Demonstrates explicit-commit UX (no idle timeout), per-region state tracking with sentinel "shown" values, and a "no match" error path that's dismissed by the next input.
 - [utility/morse/training.lua](utility/morse/training.lua) — input-driven navigation between states (up/down/ok/back), with playback that bubbles any nav press back up to the main loop instead of swallowing it.
 - [game/invader.lua](game/invader.lua) — pure overdraw game loop with many moving entities, fixed-pool bullets, AABB collisions, persistent high score via `uni.sd`.
 
