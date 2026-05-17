@@ -1,4 +1,6 @@
+game/higher-lower.lua
 game/invader.lua
+game/stacker.lua
 utility/morse/generator.lua
 utility/morse/simulator.lua
 utility/morse/training.lua
