@@ -1,6 +1,10 @@
 game/higher-lower.lua
 game/invader.lua
+game/simon.lua
+game/snake.lua
 game/stacker.lua
+utility/dice-roller.lua
+utility/magic-8ball.lua
 utility/morse/generator.lua
 utility/morse/simulator.lua
 utility/morse/training.lua
