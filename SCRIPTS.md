@@ -18,4 +18,6 @@ For how to *write* a script, see the [README](README.md). For the conventions en
 
 | Path | Description | Save file |
 |---|---|---|
+| [game/higher-lower.lua](game/higher-lower.lua) | Card guessing game. A value 1–13 is shown; UP = next will be higher, DOWN = next will be lower. Ties count as correct. Wrong guess ends the run; best streak is saved. | `/unigeek/games/higher-lower.txt` (best streak) |
 | [game/invader.lua](game/invader.lua) | Space-invader clone. Move with UP/DOWN (or LEFT/RIGHT), fire with OK, BACK exits. | `/unigeek/games/invader.txt` (high score) |
+| [game/stacker.lua](game/stacker.lua) | A coloured block slides at the top of the screen; OK drops it onto the stack. Any overhang gets trimmed and the next block inherits the trimmed width. Miss ends the game, stacking to the ceiling wins it. | `/unigeek/games/stacker.txt` (high score) |
