@@ -34,13 +34,42 @@ Globals (no require): `uni.debug`, `uni.delay`, `uni.millis`, `uni.heap`, `uni.b
 
 Via `require`: `uni.lcd` (display + sprites), `uni.sd` (file I/O), `uni.nav` (buttons + touch), `uni.input` (modal text/number/hex/ip prompts), `uni.dialog` (confirm/select), `uni.notify` (toast), `uni.json`, `uni.path`, `uni.time` (RTC), `uni.config` (device settings).
 
+## Hardware: default button layout
+
+**The default UniGeek hardware exposes only four nav inputs: `"up"`, `"down"`, `"ok"`, and `"back"`.** The Lua Runner API also defines `"left"` and `"right"`, but those events only fire on board variants with a full d-pad / joystick. Anything distributed in this repo has to work on the default board.
+
+When designing a script:
+- Use **up / down** for any horizontal or "previous / next" action — even when "left / right" would be the more obvious mapping (e.g. movement in a side-scroller, browsing a list).
+- If left / right *would* feel natural and the script targets boards that have them, accept **both** so the script still works on the default board:
+  ```lua
+  if btn == "left" or btn == "up"   then move_left()  end
+  if btn == "right" or btn == "down" then move_right() end
+  ```
+- Reserve `ok` for confirm / fire / select, and `back` for exit. Don't repurpose them.
+
 ## Existing scripts as reference
 
-- [utility/morse/generator.lua](utility/morse/generator.lua) — modal input prompt followed by audio + visual playback. Demonstrates the pre-allocated helper pattern, overdraw for the lamp, `lcd.textColor(fg,bg)` for changing text, and BACK-polling between every dot/dash so playback cancels cleanly.
-- [utility/morse/simulator.lua](utility/morse/simulator.lua) — input-driven navigation between states (left/right/ok/back), with playback that bubbles any nav press back up to the main loop instead of swallowing it.
+[SCRIPTS.md](SCRIPTS.md) is the user-facing catalogue of everything in the repo, grouped by category, with controls and save-file paths. **Keep it in sync** — when you add, rename, or remove a script, update SCRIPTS.md in the same change. The README intentionally does not duplicate this list; it just links to SCRIPTS.md.
+
+Concrete patterns to study before writing a new one:
+
+- [utility/morse/generator.lua](utility/morse/generator.lua) — modal input prompt followed by audio + visual playback. Pre-allocated helpers, overdraw for the lamp, `lcd.textColor(fg,bg)` for changing text, BACK-polling between every dot/dash so playback cancels cleanly.
+- [utility/morse/simulator.lua](utility/morse/simulator.lua) — touch hold-detection via `nav.isTouched()` edge-detection (start time on press, decide dot vs dash on release), button fallback for non-touch boards, idle-timeout auto-commit, diff-rendered regions.
+- [utility/morse/training.lua](utility/morse/training.lua) — input-driven navigation between states (up/down/ok/back), with playback that bubbles any nav press back up to the main loop instead of swallowing it.
+- [game/invader.lua](game/invader.lua) — pure overdraw game loop with many moving entities, fixed-pool bullets, AABB collisions, persistent high score via `uni.sd`.
 
 When adding a new tool, follow the same shape: one file per script, all `require` calls and helpers declared once at the top, then a single `while true do` loop that polls `nav.btn()`, mutates pre-declared locals, redraws only what changed, and ends with `uni.delay(16)` (~60 fps) or larger.
 
 ## Firmware download integration
 
 The UniGeek firmware downloads scripts from this repo over WiFi — see `_fetchLuaLevel` in [../unigeek/firmware/src/screens/wifi/network/DownloadScreen.cpp](../unigeek/firmware/src/screens/wifi/network/DownloadScreen.cpp) (around line 701). If you change anything about how the firmware browses this repo (manifest format, directory listing scheme, path layout), the parser there is the contract you have to satisfy.
+
+## Git commits
+
+Follow the user's global commit style stored in `~/.claude/memory/feedback_git_commits.md`. The rules:
+
+- **No co-author trailer.** Never append `Co-Authored-By: Claude …` or any other co-author line.
+- **Lead with a random emoji.** Pick any emoji — it does **not** need to relate to what the commit changes. The randomness is the point; don't waste cycles trying to find a "fitting" one.
+- **Short overview only.** One subject line. No bullet points, no body, no detailed explanation.
+
+Example: `📡 initial morse generator + simulator + docs`
