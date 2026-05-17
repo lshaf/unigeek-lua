@@ -8,7 +8,7 @@ This README is also the guide for **writing new scripts** — for yourself or wi
 
 See **[SCRIPTS.md](SCRIPTS.md)** for the full catalogue of utilities and games included, with controls and save-file paths.
 
-To add a new script: drop it under a category folder (`utility/`, `game/`, etc.). The Lua Runner browses sub-directories automatically. Update [SCRIPTS.md](SCRIPTS.md) so the new script shows up in the index.
+To add a new script, follow **[CONTRIBUTING.md](CONTRIBUTING.md)** — it covers folder conventions, the two index files (`map.txt` and `SCRIPTS.md`) that have to stay in sync, default-hardware controls, save paths, and the testing checklist.
 
 ---
 
