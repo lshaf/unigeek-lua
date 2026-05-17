@@ -1,8 +1,8 @@
--- simulator.lua — Morse Code Trainer / Reference
+-- training.lua — Morse Code Trainer / Reference
 -- Browse the morse alphabet one letter at a time. Each entry plays
 -- the audio with a synced "lamp" and highlighted dot/dash strip.
---   LEFT  / UP   = previous
---   RIGHT / DOWN = next
+--   UP   / LEFT  = previous
+--   DOWN / RIGHT = next
 --   OK           = replay current letter
 --   BACK         = exit
 
