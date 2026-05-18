@@ -1,3 +1,4 @@
+game/fishing-legend.lua
 game/higher-lower.lua
 game/invader.lua
 game/mastermind.lua
@@ -6,6 +7,7 @@ game/reaction.lua
 game/simon.lua
 game/snake.lua
 game/stacker.lua
+game/tamagotchi.lua
 game/tic-tac-toe.lua
 network/crypto-price.lua
 utility/base-converter.lua
