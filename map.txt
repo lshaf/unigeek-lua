@@ -10,6 +10,9 @@ game/stacker.lua
 game/tamagotchi.lua
 game/tic-tac-toe.lua
 network/crypto-price.lua
+network/hacker-news.lua
+network/iss-tracker.lua
+network/weather.lua
 utility/base-converter.lua
 utility/caesar-cipher.lua
 utility/calculator.lua
