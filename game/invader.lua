@@ -7,6 +7,11 @@
 -- Default UniGeek hardware only has up/down/ok/back, so the ship is moved
 -- with up/down. Boards that have left/right still work too.
 --
+-- Endless: clearing a wave advances to the next level. Each level speeds
+-- up the invader march, increases enemy fire rate, and gradually raises
+-- enemy bullet speed. Score and lives carry over; the run ends only when
+-- lives reach 0 or the invaders touch the player.
+--
 -- All movement uses overdraw — no lcd.clear()/fillScreen() inside the loop.
 -- Helpers are declared before the main while-loop so no closures churn in
 -- the hot path. High score persists to /unigeek/games/invader.txt.
@@ -63,6 +68,8 @@ local SAVE_PATH = "/unigeek/games/invader.txt"
 
 -- ── State (declared once, mutated inside the loop) ────────
 local score, lives, alive_count, frame, game_state
+local level, ebullet_spd, level_clear_timer
+local level_txt_x, level_txt_y, level_txt_w
 local player_x, player_x_prev, player_y
 local grid_x, grid_y, grid_x_prev, grid_y_prev, grid_dx
 local bullets, ebullets, invaders
@@ -83,6 +90,23 @@ local function rowPoints(r)
   elseif r == 2 then return 30
   elseif r == 3 then return 20
   else return 10 end
+end
+
+-- Difficulty curves indexed by `level` (starts at 1).
+local function levelStepBase()
+  return math.max(10, 30 - (level - 1) * 4)
+end
+
+local function levelStepMin()
+  return math.max(2, 6 - math.floor((level - 1) / 2))
+end
+
+local function levelFireChance()
+  return math.max(12, 50 - (level - 1) * 5)
+end
+
+local function levelEBulletSpd()
+  return math.min(6, EBULLET_SPD + math.floor((level - 1) / 2))
 end
 
 local function loadHigh()
@@ -253,7 +277,15 @@ end
 local function drawHUD()
   lcd.textSize(1)
   lcd.textColor(C_TEXT, C_HUD_BG)
-  lcd.print(2, 2, string.format("SCORE %-5d", score))
+  local sStr = string.format("SCORE %-5d", score)
+  lcd.print(2, 2, sStr)
+
+  -- Level sits right after the SCORE field. Both halves use fixed-width
+  -- formats (%-5d / %2d) so their pixel widths stay constant frame-to-frame
+  -- and the textColor bg fully overdraws the previous render.
+  local lvStr = string.format("LV %2d", level)
+  lcd.textColor(C_HI, C_HUD_BG)
+  lcd.print(2 + lcd.textWidth(sStr) + 6, 2, lvStr)
 
   local lStr = string.format("LIVES %d", math.max(0, lives))
   lcd.textColor(C_PLAYER, C_HUD_BG)
@@ -261,9 +293,68 @@ local function drawHUD()
   lcd.print(W - lw - 2, 2, lStr)
 end
 
-local function drawGameOver(win)
+local function drawLevelOverlay()
+  lcd.textSize(2)
+  local txt = string.format("LEVEL %d", level)
+  level_txt_w = lcd.textWidth(txt)
+  level_txt_x = math.floor((W - level_txt_w) / 2)
+  level_txt_y = math.floor(H / 2) - 8
+  lcd.textColor(C_HI, C_BG)
+  lcd.print(level_txt_x, level_txt_y, txt)
+end
+
+local function eraseLevelOverlay()
+  lcd.rect(level_txt_x - 2, level_txt_y - 2, level_txt_w + 4, 22, C_BG)
+end
+
+local function clearAllBullets()
+  for i = 1, MAX_BULLETS do
+    local b = bullets[i]
+    if b.alive then
+      lcd.rect(b.x_prev, b.y_prev, BULLET_W, BULLET_H, C_BG)
+      lcd.rect(b.x,      b.y,      BULLET_W, BULLET_H, C_BG)
+      b.alive = false
+    end
+  end
+  for i = 1, MAX_EBULLETS do
+    local eb = ebullets[i]
+    if eb.alive then
+      lcd.rect(eb.x_prev, eb.y_prev, BULLET_W, BULLET_H, C_BG)
+      lcd.rect(eb.x,      eb.y,      BULLET_W, BULLET_H, C_BG)
+      eb.alive = false
+    end
+  end
+end
+
+local function spawnInvaders()
+  invaders = {}
+  for r = 1, ROWS do
+    invaders[r] = {}
+    for c = 1, COLS do invaders[r][c] = true end
+  end
+  alive_count = TOTAL_INV
+
+  grid_x      = math.floor((W - GRID_TOTAL_W) / 2)
+  grid_y      = PLAY_TOP + 8
+  grid_x_prev = grid_x
+  grid_y_prev = grid_y
+  grid_dx     = 4
+end
+
+local function nextLevel()
+  clearAllBullets()
+  level = level + 1
+  ebullet_spd = levelEBulletSpd()
+  level_clear_timer = 36   -- ~1.2s at the loop's 33ms delay
+  game_state = "level_clear"
+  drawHUD()
+  drawLevelOverlay()
+  uni.beep(1200, 60)
+end
+
+local function drawGameOver()
   local boxW = math.min(W - 16, 200)
-  local boxH = 76
+  local boxH = 90
   local bx = math.floor((W - boxW) / 2)
   local by = math.floor((H - boxH) / 2)
   lcd.rect(bx, by, boxW, boxH, C_HUD_BG)
@@ -273,21 +364,25 @@ local function drawGameOver(win)
   lcd.rect(bx + boxW - 1, by, 1, boxH, C_DIM)
 
   lcd.textSize(2)
-  local title = win and "YOU WIN!" or "GAME OVER"
-  lcd.textColor(win and C_PLAYER or C_EBULLET, C_HUD_BG)
+  local title = "GAME OVER"
+  lcd.textColor(C_EBULLET, C_HUD_BG)
   local tw = lcd.textWidth(title)
   lcd.print(bx + math.floor((boxW - tw) / 2), by + 8, title)
 
   lcd.textSize(1)
   lcd.textColor(C_TEXT, C_HUD_BG)
+  local lv = string.format("Level: %d", level)
+  local lvw = lcd.textWidth(lv)
+  lcd.print(bx + math.floor((boxW - lvw) / 2), by + 34, lv)
+
   local s = string.format("Score: %d", score)
   local sw = lcd.textWidth(s)
-  lcd.print(bx + math.floor((boxW - sw) / 2), by + 34, s)
+  lcd.print(bx + math.floor((boxW - sw) / 2), by + 46, s)
 
   local hi = string.format("High: %d", highScore)
   lcd.textColor(C_HI, C_HUD_BG)
   local hiw = lcd.textWidth(hi)
-  lcd.print(bx + math.floor((boxW - hiw) / 2), by + 46, hi)
+  lcd.print(bx + math.floor((boxW - hiw) / 2), by + 58, hi)
 
   lcd.textColor(C_DIM, C_HUD_BG)
   local hint = "OK: again   BACK: exit"
@@ -298,25 +393,10 @@ end
 local function resetGame()
   score        = 0
   lives        = 3
-  alive_count  = TOTAL_INV
+  level        = 1
+  ebullet_spd  = EBULLET_SPD
   frame        = 0
   game_state   = "play"
-
-  invaders = {}
-  for r = 1, ROWS do
-    invaders[r] = {}
-    for c = 1, COLS do invaders[r][c] = true end
-  end
-
-  grid_x      = math.floor((W - GRID_TOTAL_W) / 2)
-  grid_y      = PLAY_TOP + 8
-  grid_x_prev = grid_x
-  grid_y_prev = grid_y
-  grid_dx     = 4
-
-  player_x      = math.floor((W - PLAYER_W) / 2)
-  player_x_prev = player_x
-  player_y      = PLAY_BOT - PLAYER_H
 
   bullets = {}
   for i = 1, MAX_BULLETS do
@@ -326,6 +406,12 @@ local function resetGame()
   for i = 1, MAX_EBULLETS do
     ebullets[i] = { x = 0, y = 0, x_prev = 0, y_prev = 0, alive = false }
   end
+
+  spawnInvaders()
+
+  player_x      = math.floor((W - PLAYER_W) / 2)
+  player_x_prev = player_x
+  player_y      = PLAY_BOT - PLAYER_H
 end
 
 local function drawSceneBackground()
@@ -378,7 +464,7 @@ while true do
       if eb.alive then
         eb.x_prev = eb.x
         eb.y_prev = eb.y
-        eb.y = eb.y + EBULLET_SPD
+        eb.y = eb.y + ebullet_spd
         if eb.y > PLAY_BOT then
           eb.alive = false
           lcd.rect(eb.x_prev, eb.y_prev, BULLET_W, BULLET_H, C_BG)
@@ -386,12 +472,13 @@ while true do
       end
     end
 
-    local interval = math.max(6, 30 - math.floor((TOTAL_INV - alive_count) / 2))
+    local interval = math.max(levelStepMin(),
+                              levelStepBase() - math.floor((TOTAL_INV - alive_count) / 2))
     if frame % interval == 0 then
       stepGrid()
     end
 
-    if math.random(1, 50) == 1 then
+    if math.random(1, levelFireChance()) == 1 then
       fireEnemyBullet()
     end
 
@@ -428,19 +515,28 @@ while true do
 
     drawHUD()
 
-    if alive_count == 0 then
-      game_state = "win"
-      uni.beep(880, 80)
-    end
-
-    if game_state ~= "play" then
+    -- Order matters: a player death in the same frame that clears the wave
+    -- still counts as a loss — game over wins over the level transition.
+    if game_state == "over" then
       if score > highScore then
         highScore = score
         saveHigh(highScore)
       end
-      drawGameOver(game_state == "win")
+      drawGameOver()
+    elseif alive_count == 0 then
+      nextLevel()
+    end
+  elseif game_state == "level_clear" then
+    level_clear_timer = level_clear_timer - 1
+    if level_clear_timer <= 0 then
+      eraseLevelOverlay()
+      spawnInvaders()
+      drawGrid()
+      drawPlayer(player_x)
+      game_state = "play"
     end
   else
+    -- "over": waiting for OK to restart
     if btn == "ok" then
       resetGame()
       drawSceneBackground()
