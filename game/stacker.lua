@@ -1,11 +1,15 @@
 -- stacker.lua — Block Stacker
 -- A coloured block slides left and right along the top of the screen.
 -- Press OK to drop it on the stack below — any overhang past the
--- previous block is trimmed off, so the tower narrows over time. A
--- drop that misses ends the game; stacking to the ceiling wins it.
+-- previous block is trimmed off, so the tower narrows over time.
+--
+-- Endless: reaching the ceiling advances to the next level. Each level
+-- starts the slider faster and lifts the in-level speed cap a notch, so
+-- timing gets tighter every wave. Score and palette cycle carry over;
+-- the run ends only when a drop misses.
 --
 --   OK   : drop the moving block
---   BACK : exit (also dismisses Game Over / You Win)
+--   BACK : exit (also dismisses Game Over)
 --
 -- High score persists to /unigeek/games/stacker.txt.
 
@@ -50,7 +54,8 @@ local SAVE_PATH       = "/unigeek/games/stacker.txt"
 
 -- ── State (declared once) ─────────────────────────────────
 local score, highScore
-local game_state                                  -- "sliding" | "dropping" | "over" | "win"
+local game_state                                  -- "sliding" | "dropping" | "level_clear" | "over"
+local level, level_score, level_clear_timer
 local cur_x, cur_y, cur_width, cur_dir, prev_cx
 local top_x, top_y, top_width
 local slide_speed
@@ -61,6 +66,15 @@ local last_score_shown
 -- ── Helpers (pre-allocated) ───────────────────────────────
 local function rowColor()
   return PALETTE[((color_idx - 1) % #PALETTE) + 1]
+end
+
+-- Difficulty curves indexed by `level` (starts at 1).
+local function levelSlideBase()
+  return math.min(6, SLIDE_SPEED_0 + (level - 1))
+end
+
+local function levelSlideMax()
+  return math.min(10, SLIDE_SPEED_MAX + math.floor((level - 1) / 2))
 end
 
 local function loadHigh()
@@ -76,11 +90,28 @@ end
 local function drawHUD()
   lcd.textSize(1)
   lcd.textColor(C_TEXT, C_HUD_BG)
-  lcd.print(2, 2, string.format("SCORE %-4d", score))
+  local sStr = string.format("SCORE %-5d", score)
+  lcd.print(2, 2, sStr)
+
+  -- Level is shown between SCORE and HI. Fixed widths (%-5d / %2d / %-4d)
+  -- mean each field's pixel width is stable, so textColor bg overdraws
+  -- the previous render without leaving residue.
+  local lvStr = string.format("LV %2d", level)
+  lcd.textColor(C_GOOD, C_HUD_BG)
+  lcd.print(2 + lcd.textWidth(sStr) + 6, 2, lvStr)
+
   local hiStr = string.format("HI %-4d", highScore)
   lcd.textColor(C_HI, C_HUD_BG)
   local hw = lcd.textWidth(hiStr)
   lcd.print(W - hw - 2, 2, hiStr)
+end
+
+local function drawLevelOverlay()
+  lcd.textSize(2)
+  local txt = string.format("LEVEL %d", level)
+  local tw = lcd.textWidth(txt)
+  lcd.textColor(C_HI, C_BG)
+  lcd.print(math.floor((W - tw) / 2), math.floor(H / 2) - 8, txt)
 end
 
 local function drawSceneBackground()
@@ -93,9 +124,9 @@ local function drawBlock(x, y, w, color)
   lcd.rect(x, y, w, BLOCK_H, color)
 end
 
-local function drawPopup(win)
+local function drawPopup()
   local boxW = math.min(W - 16, 200)
-  local boxH = 72
+  local boxH = 86
   local bx = math.floor((W - boxW) / 2)
   local by = math.floor((H - boxH) / 2)
   lcd.rect(bx, by, boxW, boxH, C_HUD_BG)
@@ -105,21 +136,25 @@ local function drawPopup(win)
   lcd.rect(bx + boxW - 1, by, 1, boxH, C_DIM)
 
   lcd.textSize(2)
-  local title = win and "STACKED!" or "MISSED!"
-  lcd.textColor(win and C_GOOD or C_BAD, C_HUD_BG)
+  local title = "MISSED!"
+  lcd.textColor(C_BAD, C_HUD_BG)
   local tw = lcd.textWidth(title)
   lcd.print(bx + math.floor((boxW - tw) / 2), by + 8, title)
 
   lcd.textSize(1)
   lcd.textColor(C_TEXT, C_HUD_BG)
+  local lv = string.format("Level: %d", level)
+  local lvw = lcd.textWidth(lv)
+  lcd.print(bx + math.floor((boxW - lvw) / 2), by + 32, lv)
+
   local s = string.format("Score: %d", score)
   local sw = lcd.textWidth(s)
-  lcd.print(bx + math.floor((boxW - sw) / 2), by + 32, s)
+  lcd.print(bx + math.floor((boxW - sw) / 2), by + 44, s)
 
   local hi = string.format("Best: %d", highScore)
   lcd.textColor(C_HI, C_HUD_BG)
   local hiw = lcd.textWidth(hi)
-  lcd.print(bx + math.floor((boxW - hiw) / 2), by + 44, hi)
+  lcd.print(bx + math.floor((boxW - hiw) / 2), by + 56, hi)
 
   lcd.textColor(C_DIM, C_HUD_BG)
   local hint = "OK: again   BACK: exit"
@@ -135,19 +170,34 @@ local function spawnNextBlock()
   prev_cx   = cur_x
 end
 
+local function resetTower()
+  level_score = 0
+  slide_speed = levelSlideBase()
+  top_width   = INIT_WIDTH
+  top_x       = math.floor((W - top_width) / 2)
+  top_y       = PLAY_BOT - BLOCK_H
+  spawnNextBlock()
+end
+
 local function resetGame()
   score            = 0
+  level            = 1
   game_state       = "sliding"
-  slide_speed      = SLIDE_SPEED_0
   color_idx        = 1
   popup_drawn      = false
   last_score_shown = -1
 
-  top_width = INIT_WIDTH
-  top_x     = math.floor((W - top_width) / 2)
-  top_y     = PLAY_BOT - BLOCK_H
+  resetTower()
+end
 
-  spawnNextBlock()
+local function nextLevel()
+  level = level + 1
+  level_clear_timer = 36   -- ~1.2s at the loop's 33ms delay
+  game_state = "level_clear"
+  drawHUD()
+  last_score_shown = score
+  drawLevelOverlay()
+  uni.beep(1200, 60)
 end
 
 -- ── Init ──────────────────────────────────────────────────
@@ -207,17 +257,15 @@ while true do
         top_y     = cur_y
         top_width = new_width
         drawBlock(top_x, top_y, top_width, rowColor())
-        score = score + 1
-        uni.beep(700 + score * 25, 35)
+        score       = score + 1
+        level_score = level_score + 1
+        uni.beep(700 + level_score * 25, 35)
 
         if top_y <= PLAY_TOP then
-          game_state = "win"
-          uni.beep(1200, 60)
-          uni.delay(80)
-          uni.beep(1600, 60)
+          nextLevel()
         else
           color_idx   = color_idx + 1
-          slide_speed = math.min(SLIDE_SPEED_MAX, SLIDE_SPEED_0 + math.floor(score / 4))
+          slide_speed = math.min(levelSlideMax(), levelSlideBase() + math.floor(level_score / 4))
           spawnNextBlock()
           drawBlock(cur_x, cur_y, cur_width, rowColor())
           game_state = "sliding"
@@ -228,8 +276,21 @@ while true do
       drawBlock(cur_x, cur_y, cur_width, rowColor())
     end
 
+  elseif game_state == "level_clear" then
+    level_clear_timer = level_clear_timer - 1
+    if level_clear_timer <= 0 then
+      -- Wipe the whole play area: clears the completed tower AND the
+      -- centered level overlay in one shot (overlay sits inside play area).
+      lcd.rect(0, PLAY_TOP, W, PLAY_BOT - PLAY_TOP + 1, C_BG)
+      color_idx = color_idx + 1
+      resetTower()
+      drawBlock(top_x, top_y, top_width, C_PLATFORM)
+      drawBlock(cur_x, cur_y, cur_width, rowColor())
+      game_state = "sliding"
+    end
+
   else
-    -- "over" or "win"
+    -- "over"
     if not popup_drawn then
       if score > highScore then
         highScore = score
@@ -237,7 +298,7 @@ while true do
         drawHUD()
         last_score_shown = score
       end
-      drawPopup(game_state == "win")
+      drawPopup()
       popup_drawn = true
     end
     if btn == "ok" then
