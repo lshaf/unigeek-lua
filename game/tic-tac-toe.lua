@@ -1,13 +1,16 @@
--- tic-tac-toe.lua — Tic-Tac-Toe vs AI
--- The AI runs full alpha-beta minimax, so the best you'll do is draw.
--- Player is X (always moves first), AI is O.
+-- tic-tac-toe.lua — Endless Tic-Tac-Toe vs AI
+-- Sliding-piece variant: each side keeps at most 3 marks on the board. Placing
+-- a 4th (the 7th turn for X, 8th for O) makes that side's OLDEST mark vanish, so
+-- the board never fills and there are no draws — play runs until someone wins.
+-- The mark about to disappear next is shown dimmed.
+-- The AI runs a depth-limited alpha-beta minimax. Player is X (moves first), AI is O.
 --
 --   UP   : previous empty cell (skips occupied)
 --   DOWN : next empty cell (skips occupied)
 --   OK   : place X at cursor / start a new game from the popup
 --   BACK : exit (also dismisses the popup)
 --
--- Wins/losses/draws persist as JSON in /unigeek/games/tic-tac-toe.txt.
+-- Wins/losses persist as JSON in /unigeek/games/tic-tac-toe.txt.
 
 local lcd  = require("uni.lcd")
 local nav  = require("uni.nav")
@@ -28,6 +31,8 @@ local C_BAD      = lcd.color(255, 110, 110)
 local C_GRID     = lcd.color( 80,  80, 110)
 local C_X        = lcd.color(120, 220, 255)
 local C_O        = lcd.color(255, 170, 100)
+local C_X_DIM    = lcd.color( 55, 100, 115)   -- mark about to vanish
+local C_O_DIM    = lcd.color(115,  78,  46)
 local C_CURSOR   = lcd.color(255, 220,  80)
 local C_WIN_LINE = lcd.color(255, 240, 120)
 
@@ -46,13 +51,17 @@ local SAVE_PATH = "/unigeek/games/tic-tac-toe.txt"
 
 -- ── State (declared once) ─────────────────────────────────
 local board         -- array[1..9]: 0 / "X" / "O"
+local xq, oq        -- placement queues (oldest first), capped at 3 marks each
 local cursor        -- 1..9 (always points at an empty cell during play)
 local turn          -- "player" | "ai"
 local game_state    -- "playing" | "over"
-local outcome       -- "win" | "loss" | "draw" (when over)
+local outcome       -- "win" | "loss" (when over)
 local winning_line  -- {a, b, c} or nil
 local stats
 local popup_drawn
+
+local MAX_MARKS = 3   -- per side; a 4th placement removes the oldest
+local MAX_DEPTH = 6   -- AI search horizon (the tree is infinite without one)
 
 math.randomseed(uni.millis())
 
@@ -97,25 +106,45 @@ local function checkWinner(brd)
   return nil, nil
 end
 
-local function isFull(brd)
-  for i = 1, 9 do if brd[i] == 0 then return false end end
-  return true
+-- Place mark at cell, pushing onto its queue. If the queue overflows MAX_MARKS,
+-- the oldest mark is cleared from the board. Returns the removed cell (or nil) so
+-- the move can be undone during search.
+local function doMove(brd, q, cell, mark)
+  brd[cell] = mark
+  q[#q + 1] = cell
+  if #q > MAX_MARKS then
+    local removed = table.remove(q, 1)
+    brd[removed] = 0
+    return removed
+  end
+  return nil
 end
 
--- Alpha-beta minimax. AI is "O" (maximizer), player "X" (minimizer).
+local function undoMove(brd, q, cell, removed, mark)
+  if removed then
+    table.insert(q, 1, removed)
+    brd[removed] = mark
+  end
+  table.remove(q)          -- pop the cell we just placed (now at the tail)
+  brd[cell] = 0
+end
+
+-- Depth-limited alpha-beta minimax. AI is "O" (maximizer), player "X" (minimizer).
+-- The win that just happened is detected on entry; the depth cap stops the search
+-- since the sliding-piece game has no natural terminal/draw state.
 local function minimax(brd, current, depth, alpha, beta)
   local w = checkWinner(brd)
-  if w == "O" then return 10 - depth end
-  if w == "X" then return depth - 10 end
-  if isFull(brd) then return 0 end
+  if w == "O" then return 100 - depth end
+  if w == "X" then return depth - 100 end
+  if depth >= MAX_DEPTH then return 0 end
 
   if current == "O" then
     local best = -1000
     for i = 1, 9 do
       if brd[i] == 0 then
-        brd[i] = "O"
+        local removed = doMove(brd, oq, i, "O")
         local s = minimax(brd, "X", depth + 1, alpha, beta)
-        brd[i] = 0
+        undoMove(brd, oq, i, removed, "O")
         if s > best then best = s end
         if best > alpha then alpha = best end
         if beta <= alpha then break end
@@ -126,9 +155,9 @@ local function minimax(brd, current, depth, alpha, beta)
     local best = 1000
     for i = 1, 9 do
       if brd[i] == 0 then
-        brd[i] = "X"
+        local removed = doMove(brd, xq, i, "X")
         local s = minimax(brd, "O", depth + 1, alpha, beta)
-        brd[i] = 0
+        undoMove(brd, xq, i, removed, "X")
         if s < best then best = s end
         if best < beta then beta = best end
         if beta <= alpha then break end
@@ -152,9 +181,9 @@ local function aiMove()
   local best_score, best_move = -1000, nil
   for i = 1, 9 do
     if board[i] == 0 then
-      board[i] = "O"
+      local removed = doMove(board, oq, i, "O")
       local s = minimax(board, "X", 1, -1000, 1000)
-      board[i] = 0
+      undoMove(board, oq, i, removed, "O")
       if s > best_score then
         best_score = s
         best_move  = i
@@ -179,24 +208,26 @@ local function findFirstEmpty()
 end
 
 -- ── Rendering ─────────────────────────────────────────────
-local function drawX(i)
+local function drawX(i, col)
+  col = col or C_X
   local x, y, w, _ = cellRect(i)
   local m = math.max(4, math.floor(w * 0.18))
   for d = 0, 1 do
-    lcd.line(x + m,         y + m + d,     x + w - m,     y + w - m + d,     C_X)
-    lcd.line(x + m + d,     y + m,         x + w - m + d, y + w - m,         C_X)
-    lcd.line(x + w - m,     y + m + d,     x + m,         y + w - m + d,     C_X)
-    lcd.line(x + w - m + d, y + m,         x + m + d,     y + w - m,         C_X)
+    lcd.line(x + m,         y + m + d,     x + w - m,     y + w - m + d,     col)
+    lcd.line(x + m + d,     y + m,         x + w - m + d, y + w - m,         col)
+    lcd.line(x + w - m,     y + m + d,     x + m,         y + w - m + d,     col)
+    lcd.line(x + w - m + d, y + m,         x + m + d,     y + w - m,         col)
   end
 end
 
-local function drawO(i)
+local function drawO(i, col)
+  col = col or C_O
   local x, y, w, _ = cellRect(i)
   local cx = x + math.floor(w / 2)
   local cy = y + math.floor(w / 2)
   local r  = math.max(6, math.floor(w * 0.32))
   for k = 0, 2 do
-    lcd.circle(cx, cy, r - k, C_O)
+    lcd.circle(cx, cy, r - k, col)
   end
 end
 
@@ -205,6 +236,19 @@ local function drawCell(i)
   lcd.rect(x, y, w, w, C_BG)
   if     board[i] == "X" then drawX(i)
   elseif board[i] == "O" then drawO(i) end
+end
+
+-- Redraw a cell with its mark dimmed — used for the piece that vanishes next.
+local function drawCellDim(i)
+  local x, y, w, _ = cellRect(i)
+  lcd.rect(x, y, w, w, C_BG)
+  if     board[i] == "X" then drawX(i, C_X_DIM)
+  elseif board[i] == "O" then drawO(i, C_O_DIM) end
+end
+
+-- When a side holds the max number of marks, dim the oldest (front of queue).
+local function markDoomed(q)
+  if #q >= MAX_MARKS then drawCellDim(q[1]) end
 end
 
 local function drawCursor()
@@ -282,9 +326,8 @@ local function drawPopup()
 
   lcd.textSize(2)
   local title, color
-  if     outcome == "win"  then title, color = "YOU WIN!",  C_GOOD
-  elseif outcome == "loss" then title, color = "AI WINS",   C_BAD
-  else                          title, color = "DRAW",      C_HI end
+  if outcome == "win" then title, color = "YOU WIN!", C_GOOD
+  else                     title, color = "AI WINS",  C_BAD end
   lcd.textColor(color, C_HUD_BG)
   local tw = lcd.textWidth(title)
   lcd.print(bx + math.floor((boxW - tw) / 2), by + 8, title)
@@ -304,6 +347,8 @@ end
 -- ── Game flow ─────────────────────────────────────────────
 local function startGame()
   board        = { 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+  xq           = {}
+  oq           = {}
   cursor       = 5
   turn         = "player"
   game_state   = "playing"
@@ -332,13 +377,6 @@ local function afterMove(move_was_player)
     drawWinLine()
     return
   end
-  if isFull(board) then
-    outcome     = "draw"
-    stats.draws = stats.draws + 1
-    saveStats()
-    game_state  = "over"
-    return
-  end
   if move_was_player then
     turn = "ai"
   else
@@ -353,8 +391,11 @@ local function playerMove()
     uni.beep(200, 50)
     return
   end
-  board[cursor] = "X"
-  drawCell(cursor)
+  local placed  = cursor
+  local removed = doMove(board, xq, cursor, "X")
+  drawCell(placed)
+  if removed then drawCell(removed) end
+  markDoomed(xq)
   uni.beep(900, 30)
   afterMove(true)
 end
@@ -364,8 +405,10 @@ local function makeAIMove()
   uni.delay(250)
   local move = aiMove()
   if not move then return end
-  board[move] = "O"
+  local removed = doMove(board, oq, move, "O")
   drawCell(move)
+  if removed then drawCell(removed) end
+  markDoomed(oq)
   uni.beep(550, 30)
   afterMove(false)
 end
