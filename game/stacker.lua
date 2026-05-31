@@ -3,10 +3,11 @@
 -- Press OK to drop it on the stack below — any overhang past the
 -- previous block is trimmed off, so the tower narrows over time.
 --
--- Endless: reaching the ceiling advances to the next level. Each level
--- starts the slider faster and lifts the in-level speed cap a notch, so
--- timing gets tighter every wave. Score and palette cycle carry over;
--- the run ends only when a drop misses.
+-- Endless climb: when the tower reaches the ceiling the whole stack
+-- scrolls down one block to make room, so you keep stacking the same
+-- width forever — no wipe, no reset. Each scroll counts as a level: the
+-- slider starts faster and the in-level speed cap lifts a notch, so timing
+-- gets tighter the higher you climb. The run ends only when a drop misses.
 --
 --   OK   : drop the moving block
 --   BACK : exit (also dismisses Game Over)
@@ -54,18 +55,25 @@ local SAVE_PATH       = "/unigeek/games/stacker.txt"
 
 -- ── State (declared once) ─────────────────────────────────
 local score, highScore
-local game_state                                  -- "sliding" | "dropping" | "level_clear" | "over"
-local level, level_score, level_clear_timer
+local game_state                                  -- "sliding" | "dropping" | "over"
+local level, level_score
 local cur_x, cur_y, cur_width, cur_dir, prev_cx
 local top_x, top_y, top_width
 local slide_speed
 local color_idx
 local popup_drawn
 local last_score_shown
+local stack                                       -- landed blocks: { {x, w, y, ci}, ... }
 
 -- ── Helpers (pre-allocated) ───────────────────────────────
 local function rowColor()
   return PALETTE[((color_idx - 1) % #PALETTE) + 1]
+end
+
+-- ci == 0 is the original platform; anything else cycles the palette.
+local function colorForCi(ci)
+  if ci == 0 then return C_PLATFORM end
+  return PALETTE[((ci - 1) % #PALETTE) + 1]
 end
 
 -- Difficulty curves indexed by `level` (starts at 1).
@@ -104,14 +112,6 @@ local function drawHUD()
   lcd.textColor(C_HI, C_HUD_BG)
   local hw = lcd.textWidth(hiStr)
   lcd.print(W - hw - 2, 2, hiStr)
-end
-
-local function drawLevelOverlay()
-  lcd.textSize(2)
-  local txt = string.format("LEVEL %d", level)
-  local tw = lcd.textWidth(txt)
-  lcd.textColor(C_HI, C_BG)
-  lcd.print(math.floor((W - tw) / 2), math.floor(H / 2) - 8, txt)
 end
 
 local function drawSceneBackground()
@@ -176,6 +176,7 @@ local function resetTower()
   top_width   = INIT_WIDTH
   top_x       = math.floor((W - top_width) / 2)
   top_y       = PLAY_BOT - BLOCK_H
+  stack       = { { x = top_x, w = top_width, y = top_y, ci = 0 } }
   spawnNextBlock()
 end
 
@@ -190,13 +191,30 @@ local function resetGame()
   resetTower()
 end
 
-local function nextLevel()
-  level = level + 1
-  level_clear_timer = 36   -- ~1.2s at the loop's 33ms delay
-  game_state = "level_clear"
-  drawHUD()
+-- Tower hit the ceiling: scroll every landed block down one row, drop any
+-- that fall off the bottom, and redraw so the climb continues seamlessly.
+-- Counts as a level — the slider speeds up another notch.
+local function scrollDown()
+  local kept = {}
+  for i = 1, #stack do
+    local b = stack[i]
+    b.y = b.y + BLOCK_H
+    if b.y <= PLAY_BOT - BLOCK_H then kept[#kept + 1] = b end
+  end
+  stack = kept
+  top_y = top_y + BLOCK_H
+
+  lcd.rect(0, PLAY_TOP, W, PLAY_BOT - PLAY_TOP + 1, C_BG)
+  for i = 1, #stack do
+    local b = stack[i]
+    drawBlock(b.x, b.y, b.w, colorForCi(b.ci))
+  end
+  drawHUD()   -- repaint the bar in case a block grazed it before scrolling
   last_score_shown = score
-  drawLevelOverlay()
+
+  level       = level + 1
+  level_score = 0
+  slide_speed = levelSlideBase()
   uni.beep(1200, 60)
 end
 
@@ -257,36 +275,23 @@ while true do
         top_y     = cur_y
         top_width = new_width
         drawBlock(top_x, top_y, top_width, rowColor())
+        stack[#stack + 1] = { x = top_x, w = top_width, y = top_y, ci = color_idx }
         score       = score + 1
         level_score = level_score + 1
         uni.beep(700 + level_score * 25, 35)
 
-        if top_y <= PLAY_TOP then
-          nextLevel()
-        else
-          color_idx   = color_idx + 1
-          slide_speed = math.min(levelSlideMax(), levelSlideBase() + math.floor(level_score / 4))
-          spawnNextBlock()
-          drawBlock(cur_x, cur_y, cur_width, rowColor())
-          game_state = "sliding"
-        end
+        -- Reached the ceiling: scroll the tower down to keep climbing.
+        if top_y <= PLAY_TOP then scrollDown() end
+
+        color_idx   = color_idx + 1
+        slide_speed = math.min(levelSlideMax(), levelSlideBase() + math.floor(level_score / 4))
+        spawnNextBlock()
+        drawBlock(cur_x, cur_y, cur_width, rowColor())
+        game_state = "sliding"
       end
     else
       lcd.rect(cur_x, prev_y, cur_width, cur_y - prev_y, C_BG)
       drawBlock(cur_x, cur_y, cur_width, rowColor())
-    end
-
-  elseif game_state == "level_clear" then
-    level_clear_timer = level_clear_timer - 1
-    if level_clear_timer <= 0 then
-      -- Wipe the whole play area: clears the completed tower AND the
-      -- centered level overlay in one shot (overlay sits inside play area).
-      lcd.rect(0, PLAY_TOP, W, PLAY_BOT - PLAY_TOP + 1, C_BG)
-      color_idx = color_idx + 1
-      resetTower()
-      drawBlock(top_x, top_y, top_width, C_PLATFORM)
-      drawBlock(cur_x, cur_y, cur_width, rowColor())
-      game_state = "sliding"
     end
 
   else
