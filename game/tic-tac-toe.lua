@@ -424,13 +424,11 @@ local function makeAIMove()
   afterMove(false)
 end
 
--- Touch support: only enabled on boards that report a touchscreen.
-local has_touch   = (type(nav.hasTouch) == "function") and nav.hasTouch() or false
-local touch_held  = false   -- edge-detect: was the screen being touched last frame?
+-- Touch support: nav.isTouched() is always false on button-only boards, so
+-- the tap handling below is a safe no-op there and needs no capability gate.
+local touch_held = false   -- edge-detect: was the screen being touched last frame?
 
-local CONTROLS_HINT = has_touch
-  and "Tap a cell    BACK exit"
-  or  "UP/DOWN cell    OK place    BACK exit"
+local CONTROLS_HINT = "UP/DOWN cell    OK place    BACK exit"
 
 -- Place X at `cursor`, then (if the game continues) let the AI reply. Shared by
 -- the OK button and a touch tap so both routes behave identically.
@@ -456,15 +454,14 @@ while true do
   local btn = nav.btn()
   if btn == "back" then break end
 
-  -- Edge-detect a fresh tap (down this frame, not held over from the last one).
-  -- Works whether nav.touch() reports "down" once per press or every frame held.
+  -- Edge-detect a fresh tap: a contact this frame that wasn't down last frame.
+  -- nav.isTouched() is false on non-touch boards, so tapx stays nil there.
   local tapx, tapy
-  if has_touch then
-    local t = nav.touch()
-    local down = t and t.state == "down"
-    if down and not touch_held then tapx, tapy = t.x, t.y end
-    touch_held = down
+  local touching = nav.isTouched()
+  if touching and not touch_held then
+    tapx, tapy = nav.touchX(), nav.touchY()
   end
+  touch_held = touching
 
   if game_state == "playing" then
     if turn == "player" then
