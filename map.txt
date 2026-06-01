@@ -2,6 +2,7 @@ game/fishing-legend.lua
 game/higher-lower.lua
 game/invader.lua
 game/mastermind.lua
+game/poker.lua
 game/pong.lua
 game/reaction.lua
 game/simon.lua
@@ -15,15 +16,19 @@ network/hacker-news.lua
 network/iss-tracker.lua
 network/weather.lua
 utility/base-converter.lua
+utility/bitwise.lua
 utility/caesar-cipher.lua
 utility/calculator.lua
 utility/clock.lua
 utility/coin-flip.lua
 utility/dice-roller.lua
+utility/led-resistor.lua
 utility/magic-8ball.lua
 utility/metronome.lua
 utility/morse/generator.lua
 utility/morse/simulator.lua
 utility/morse/training.lua
+utility/ohms-law.lua
+utility/resistor.lua
 utility/scoreboard.lua
 utility/stopwatch.lua
