@@ -1,16 +1,5 @@
 # Lua Runner
 
-> [!note]
-> **This is the authoritative Lua Runner API reference, mirrored from the UniGeek
-> firmware** (`knowledge/lua-runner.md` in the firmware repo). It is the source of
-> truth for the runtime: execution model, every module and method, anti-flicker
-> patterns, and the copy-paste "context block" for AI tools at the bottom.
->
-> It is kept here so contributors who only have this `unigeek-lua` repo can read
-> it. If the runtime ever disagrees with this document, the firmware wins — update
-> this mirror to match. The [README](../README.md) is this project's own shorter
-> writing guide; this file is the complete reference.
-
 Lua Runner lets you write and run **Lua 5.1 scripts** directly on the device, no compile step required. Scripts are stored as plain `.lua` files on the SD card and run in a `while true do` loop — a simple, game-engine-style model where your script owns the call stack for its entire lifetime.
 
 > [!tip]
@@ -543,6 +532,12 @@ Return the raw screen coordinates of the most recent touch contact, or `-1` when
 
 ---
 
+### `nav.hasTouch()` → bool
+
+Return `true` on boards that have a touch screen, `false` on button / stick / keyboard boards. Use this to branch your UI up front (draw tap targets vs. a button-driven menu) instead of inferring touch from a `-1` `nav.touchX()`. The value is fixed per board — it reflects hardware capability, not whether a finger is currently down.
+
+---
+
 ### `nav.isTouched()` → bool
 
 Return `true` while a finger is currently in contact with the screen. Goes back to `false` on lift. Always `false` on boards without touch.
@@ -581,7 +576,7 @@ On a **touch-nav board** (no physical buttons — e.g. CoreS3, CYD) the screen i
 So a single tap is reported **two ways at once**: as raw coordinates (`nav.touchX/Y/isTouched`) *and* as a `nav.btn()` direction. A tap in the left quarter returns `"back"` even though, to your script, the finger landed on whatever you drew there.
 
 > [!warning] Hit-test your own targets before honouring `nav.btn()`
-> If your script does its own coordinate hit-testing (a grid, on-screen buttons, a canvas), resolve the touch **first** and only fall back to the `nav.btn()` direction when the tap missed everything. Otherwise a tap on one of your targets that happens to sit in the `"back"` zone will exit your script. (`game/tic-tac-toe.lua` uses this pattern; it's also how the firmware main menu handles its icon grid.)
+> If your script does its own coordinate hit-testing (a grid, on-screen buttons, a canvas), resolve the touch **first** and only fall back to the `nav.btn()` direction when the tap missed everything. Otherwise a tap on one of your targets that happens to sit in the `"back"` zone will exit your script. This is exactly how the firmware main menu handles its icon grid.
 >
 > ```lua
 > while true do
@@ -989,7 +984,7 @@ nav.touchX/Y are -1 on button-only boards, so the SAME code drives stick/keyboar
   end
 There is NO flag that stops taps from firing nav.btn() — the zone mapping is always live, so
 hit-testing first is the pattern, not a toggle. uni.useTouch() only hides the zone OVERLAY bars
-(cosmetic) and does NOT change what nav.btn() reports. game/tic-tac-toe.lua uses this pattern.
+(cosmetic) and does NOT change what nav.btn() reports.
 
 ## Complete API
 
@@ -1013,6 +1008,7 @@ nav.btn()               -- returns one string per consumed press:
 nav.touchX()            -- last touch X in pixels, or -1 if no touch / non-touch board
 nav.touchY()            -- last touch Y in pixels, or -1 if no touch / non-touch board
 nav.isTouched()         -- true while a finger is currently down
+nav.hasTouch()          -- true if the board has a touch screen (fixed per board)
 
 ### Display  (require "uni.lcd" first; all coordinates in pixels, origin top-left)
 lcd.w()                 -- screen width (number)
