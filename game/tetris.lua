@@ -76,17 +76,56 @@ local SPAWN_PX, SPAWN_PY = 4, 1
 local SAVE_PATH = "/unigeek/games/tetris.txt"
 
 -- ── Layout ────────────────────────────────────────────────
-local HUD_H = 12
-local SB_W  = math.min(54, math.floor(W * 0.34))
-local CELL  = math.max(4, math.min(
-                math.floor((W - 6 - SB_W) / COLS),
-                math.floor((H - HUD_H - 6) / ROWS)))
-local FIELD_W = CELL * COLS
-local FIELD_H = CELL * ROWS
-local FIELD_X = 3
-local FIELD_Y = HUD_H + 2 + math.max(0, math.floor((H - HUD_H - 2 - FIELD_H) / 2))
-local SB_X    = FIELD_X + FIELD_W + 5
-local PCELL   = math.max(3, math.min(CELL, math.floor((W - SB_X - 4) / 4)))
+-- Fit the layout to the actual screen by computing, from W and H, the cell
+-- size each panel placement would allow, then using whichever fills the well
+-- more. The well is 10x20 (tall), so on a narrow/tall screen a bottom strip
+-- wins (keep full width); on a wide/square screen a right sidebar wins (height
+-- is the scarce dimension). CELL is the resulting block size in pixels.
+local HUD_H, M = 12, 3
+local SB_W     = math.min(54, math.floor(W * 0.34))
+local STRIP_H  = 34
+
+local cell_side  = math.min(math.floor((W - 6 - SB_W) / COLS),
+                            math.floor((H - HUD_H - 6) / ROWS))
+local cell_strip = math.min(math.floor((W - 2 * M) / COLS),
+                            math.floor((H - STRIP_H - HUD_H - 4) / ROWS))
+local portrait   = cell_strip >= cell_side
+
+local CELL, FIELD_W, FIELD_H, FIELD_X, FIELD_Y, PCELL
+local NXL_X, NXL_Y, NX_X, NX_Y
+local S1_LX, S1_LY, S1_VX, S1_VY
+local S2_LX, S2_LY, S2_VX, S2_VY
+
+if portrait then
+  CELL    = math.max(4, cell_strip)
+  FIELD_W = CELL * COLS
+  FIELD_H = CELL * ROWS
+  FIELD_X = math.floor((W - FIELD_W) / 2)
+  local avail_h = H - STRIP_H - HUD_H - 4
+  FIELD_Y = HUD_H + 2 + math.max(0, math.floor((avail_h - FIELD_H) / 2))
+
+  local info_y = H - STRIP_H
+  PCELL  = math.max(3, math.floor((STRIP_H - 4) / 4))
+  NXL_X, NXL_Y = M, info_y + math.floor((STRIP_H - 8) / 2)
+  NX_X,  NX_Y  = M + 28, info_y + math.floor((STRIP_H - PCELL * 4) / 2)
+  local base = NX_X + PCELL * 4 + 14
+  S1_LX, S1_LY, S1_VX, S1_VY = base, info_y + 4,  base + 34, info_y + 4
+  S2_LX, S2_LY, S2_VX, S2_VY = base, info_y + 18, base + 34, info_y + 18
+else
+  CELL    = math.max(4, cell_side)
+  FIELD_W = CELL * COLS
+  FIELD_H = CELL * ROWS
+  FIELD_X = M
+  FIELD_Y = HUD_H + 2 + math.max(0, math.floor((H - HUD_H - 2 - FIELD_H) / 2))
+
+  local SB_X = FIELD_X + FIELD_W + 5
+  PCELL = math.max(3, math.min(CELL, math.floor((W - SB_X - 4) / 4)))
+  NXL_X, NXL_Y = SB_X, FIELD_Y
+  NX_X,  NX_Y  = SB_X, FIELD_Y + 12
+  local statY = NX_Y + PCELL * 4 + 8
+  S1_LX, S1_LY, S1_VX, S1_VY = SB_X, statY,      SB_X, statY + 9
+  S2_LX, S2_LY, S2_VX, S2_VY = SB_X, statY + 24, SB_X, statY + 33
+end
 
 -- ── State (declared once) ─────────────────────────────────
 local grid          -- grid[r][c] = 0 or colour
@@ -187,34 +226,32 @@ local function composeRender()
 end
 
 local function drawNext()
-  -- clear the preview box, then draw the next piece centred in a 4x4 area
-  local bx, by = SB_X, FIELD_Y + 14
-  lcd.rect(bx, by, PCELL * 4, PCELL * 4, C_EMPTY)
+  -- clear the preview box, then draw the next piece in its 4x4 area
+  lcd.rect(NX_X, NX_Y, PCELL * 4, PCELL * 4, C_EMPTY)
   local p = PIECES[nxt]
   for k = 1, 4 do
     local c = p.rot[1][k][1]
     local r = p.rot[1][k][2]
-    lcd.rect(bx + c * PCELL, by + r * PCELL, PCELL - 1, PCELL - 1, p.color)
+    lcd.rect(NX_X + c * PCELL, NX_Y + r * PCELL, PCELL - 1, PCELL - 1, p.color)
   end
   shown_nxt = nxt
 end
 
-local function drawStat(y, label, value, color)
-  lcd.textSize(1)
-  lcd.textColor(C_DIM, C_BG)
-  lcd.print(SB_X, y, label)
-  lcd.textColor(color or C_TEXT, C_BG)
-  lcd.print(SB_X, y + 9, value)
-end
-
+-- The label/value anchors are positioned by the layout block, so this draws
+-- the same way whether the panel is a right sidebar or a bottom strip.
 local function drawSidebar()
   lcd.textSize(1)
   lcd.textColor(C_DIM, C_BG)
-  lcd.print(SB_X, FIELD_Y, "NEXT")
+  lcd.print(NXL_X, NXL_Y, "NEXT")
   drawNext()
-  local y = FIELD_Y + 14 + PCELL * 4 + 8
-  drawStat(y,      "LINES", string.format("%-5d", lines))
-  drawStat(y + 24, "LEVEL", string.format("%-5d", level), C_HI)
+  lcd.textColor(C_DIM, C_BG)
+  lcd.print(S1_LX, S1_LY, "LINES")
+  lcd.textColor(C_TEXT, C_BG)
+  lcd.print(S1_VX, S1_VY, string.format("%-4d", lines))
+  lcd.textColor(C_DIM, C_BG)
+  lcd.print(S2_LX, S2_LY, "LEVEL")
+  lcd.textColor(C_HI, C_BG)
+  lcd.print(S2_VX, S2_VY, string.format("%-4d", level))
   shown_lines, shown_level = lines, level
 end
 
