@@ -5,12 +5,11 @@
 -- The mark about to disappear next is shown dimmed.
 -- The AI runs a depth-limited alpha-beta minimax. Player is X (moves first), AI is O.
 --
---   UP    : previous empty cell (skips occupied)
---   DOWN  : next empty cell (skips occupied)
---   OK    : place X at cursor / start a new game from the popup
---   BACK  : exit (also dismisses the popup)
---   TOUCH : on touch-capable boards, tap a cell to place there directly
---           (tap anywhere to start a new game from the popup)
+-- Controls depend on the board (nav.hasTouch()):
+--   Touch boards  : tap a cell to place X there; tap anywhere to play again from
+--                   the popup; tap the left edge (the BACK zone) to exit.
+--   Button boards : UP/DOWN move to the previous/next empty cell, OK places X
+--                   (or starts a new game from the popup), BACK exits.
 --
 -- Wins/losses persist as JSON in /unigeek/games/tic-tac-toe.txt.
 
@@ -20,6 +19,11 @@ local sd   = require("uni.sd")
 local json = require("uni.json")
 
 local W, H = lcd.w(), lcd.h()
+
+-- Fixed per board: true on touch screens, false on button/stick/keyboard boards.
+-- We branch the whole control scheme on this once, up front, rather than trying
+-- to infer touch from a live finger-down poll.
+local HAS_TOUCH = nav.hasTouch()
 
 -- ── Colours ───────────────────────────────────────────────
 local C_BG       = lcd.color(  8,  10,  30)
@@ -263,6 +267,7 @@ local function markDoomed(q)
 end
 
 local function drawCursor()
+  if HAS_TOUCH then return end   -- touch boards place by tapping; no cursor
   if game_state ~= "playing" or turn ~= "player" then return end
   local x, y, w, _ = cellRect(cursor)
   lcd.rect(x,         y,         w, 1, C_CURSOR)
@@ -350,7 +355,7 @@ local function drawPopup()
   lcd.print(bx + math.floor((boxW - sw) / 2), by + 36, s)
 
   lcd.textColor(C_DIM, C_HUD_BG)
-  local hint = "OK: again   BACK: exit"
+  local hint = HAS_TOUCH and "Tap: again   left edge: exit" or "OK: again   BACK: exit"
   local hw = lcd.textWidth(hint)
   lcd.print(bx + math.floor((boxW - hw) / 2), by + boxH - 14, hint)
 end
@@ -424,15 +429,13 @@ local function makeAIMove()
   afterMove(false)
 end
 
--- Touch support: a tap that lands on a cell takes priority over the nav zone it
--- fell in — the same trick the firmware main menu uses (hit-test first, fall
--- through to BACK only when the tap missed). That stops a tap on a cell sitting
--- in the touch-nav BACK zone from bouncing the game out. nav.isTouched() is
--- always false on button-only boards, so there cellAt() never fires and the nav
--- buttons drive everything as before.
-local touch_seen = false   -- did a touch occur during the current press gesture?
-
-local CONTROLS_HINT = "UP/DOWN cell    OK place    BACK exit"
+-- On touch boards every nav.btn() event is a tap, so we hit-test the cell it
+-- landed on and only treat it as BACK when the tap missed every cell and fell in
+-- the touch-nav BACK zone (left quarter) — the same trick the firmware main menu
+-- uses. On button boards we never hit-test; the nav buttons drive everything.
+local CONTROLS_HINT = HAS_TOUCH
+  and "Tap a cell    tap left edge to exit"
+  or  "UP/DOWN cell    OK place    BACK exit"
 
 -- Place X at `cursor`, then (if the game continues) let the AI reply. Shared by
 -- the OK button and a touch tap so both routes behave identically.
@@ -455,40 +458,42 @@ drawHint(CONTROLS_HINT)
 
 -- ── Main loop ─────────────────────────────────────────────
 while true do
-  -- A touch held this frame marks the gesture as a tap; the matching nav.btn()
-  -- event arrives on release. We resolve which cell it hit then, so the cell
-  -- always wins over the zone direction the release would otherwise report.
-  if nav.isTouched() then touch_seen = true end
   local btn = nav.btn()
 
   if game_state == "playing" then
     if turn == "player" and btn ~= "none" then
-      -- cellAt is only consulted for touch gestures; on button boards touch_seen
-      -- stays false so btn drives navigation exactly as before.
-      local cell = touch_seen and cellAt(nav.touchX(), nav.touchY()) or nil
-      if cell then
-        if board[cell] == 0 then
-          local prev = cursor
-          cursor = cell
-          drawCell(prev)          -- clear the old cursor highlight before placing
+      if HAS_TOUCH then
+        -- Touch board: the event is a tap. Hit-test the cell it landed on; a tap
+        -- that missed every cell only exits when it fell in the BACK zone. Nav
+        -- directions are ignored here — on a touch board you place by tapping.
+        local cell = cellAt(nav.touchX(), nav.touchY())
+        if cell then
+          if board[cell] == 0 then
+            cursor = cell         -- playerMove() places at `cursor`
+            commitMove()
+          else
+            uni.beep(200, 50)     -- tapped an occupied cell
+          end
+        elseif btn == "back" then
+          break                   -- a real back: tap missed every cell
+        end
+      else
+        -- Button board: cursor navigation.
+        if btn == "up" or btn == "down" then
+          local dir = (btn == "up") and -1 or 1
+          local next_pos = findEmpty(cursor, dir)
+          if next_pos and next_pos ~= cursor then
+            local prev = cursor
+            cursor = next_pos
+            drawCell(prev)
+            drawCursor()
+            uni.beep(900, 12)
+          end
+        elseif btn == "ok" then
           commitMove()
-        else
-          uni.beep(200, 50)       -- tapped an occupied cell
+        elseif btn == "back" then
+          break
         end
-      elseif btn == "up" or btn == "down" then
-        local dir = (btn == "up") and -1 or 1
-        local next_pos = findEmpty(cursor, dir)
-        if next_pos and next_pos ~= cursor then
-          local prev = cursor
-          cursor = next_pos
-          drawCell(prev)
-          drawCursor()
-          uni.beep(900, 12)
-        end
-      elseif btn == "ok" then
-        commitMove()
-      elseif btn == "back" then
-        break                     -- a real back: tap missed every cell
       end
     end
   else
@@ -505,6 +510,5 @@ while true do
     end
   end
 
-  if btn ~= "none" then touch_seen = false end
   uni.delay(33)
 end
