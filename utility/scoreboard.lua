@@ -43,6 +43,7 @@ local GAMES = {
   { file = "stacker.txt",        name = "Stacker",      fmt = "num"   },
   { file = "simon.txt",          name = "Simon",        fmt = "num"   },
   { file = "higher-lower.txt",   name = "Higher/Lower", fmt = "num"   },
+  { file = "poker.txt",          name = "Poker",        fmt = "num"   },
   { file = "reaction.txt",       name = "Reaction",     fmt = "ms"    },
   { file = "mastermind.txt",     name = "Mastermind",   fmt = "tries" },
   { file = "tic-tac-toe.txt",    name = "Tic-Tac-Toe",  fmt = "wld"   },
