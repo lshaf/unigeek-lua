@@ -1,4 +1,4 @@
-# CLAUDE.md
+re# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -10,7 +10,7 @@ Folder layout in this repo mirrors the on-device path. `utility/morse/generator.
 
 ## Authoritative API reference
 
-**Always read [../unigeek/knowledge/lua-runner.md](../unigeek/knowledge/lua-runner.md) before writing or modifying a script.** That file documents the exact runtime: execution model, every available module and method, anti-flicker patterns, the "context block" to paste into AI tools, and the canonical example (`bounce.lua`). It is the source of truth — the rules below are a summary of what most commonly trips people up.
+**Always read [docs/lua-runner.md](docs/lua-runner.md) before writing or modifying a script.** That file documents the exact runtime: execution model, every available module and method, anti-flicker patterns, the "context block" to paste into AI tools, and the canonical example (`bounce.lua`). It is the source of truth — the rules below are a summary of what most commonly trips people up. (It is a mirror of `knowledge/lua-runner.md` in the UniGeek firmware repo, kept in-repo so it's available from a standalone clone; the firmware copy is canonical if the two ever diverge.)
 
 ## Execution model essentials
 

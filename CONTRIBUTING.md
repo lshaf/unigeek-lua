@@ -4,7 +4,7 @@ Thanks for adding to the unigeek-lua collection. This guide covers the conventio
 
 ## Before you start
 
-- Read the [README](README.md) for the full Lua Runner API and the rules that prevent the most common crashes (no `lcd.clear()` inside the loop, no inline closures, Lua 5.1 quirks).
+- Read the [README](README.md) for the full Lua Runner API and the rules that prevent the most common crashes (no `lcd.clear()` inside the loop, no inline closures, Lua 5.1 quirks). For the complete, authoritative reference (mirrored from the firmware) see **[docs/lua-runner.md](docs/lua-runner.md)**.
 - Open an existing script in the same category — it's the most concrete spec of what "good" looks like:
   - [utility/morse/generator.lua](utility/morse/generator.lua) — modal text input + audio/visual playback with mid-playback cancellation.
   - [utility/morse/simulator.lua](utility/morse/simulator.lua) — touch hold-detection with button fallback and idle-timeout decoding.

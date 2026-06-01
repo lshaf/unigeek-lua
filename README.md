@@ -4,6 +4,8 @@ A collection of Lua 5.1 scripts for the **UniGeek ESP32 firmware's Lua Runner**.
 
 This README is also the guide for **writing new scripts** — for yourself or with help from an AI assistant. The [Writing Scripts with AI](#writing-scripts-with-ai) section at the bottom has a copy-paste context block for Claude/ChatGPT. If you're an AI agent working inside this repo, also read [CLAUDE.md](CLAUDE.md).
 
+> For the **complete, authoritative API reference** — every module and method, plus runtime details this README summarises — see **[docs/lua-runner.md](docs/lua-runner.md)**. It's mirrored from the UniGeek firmware and is the source of truth when in doubt.
+
 ## Scripts in this repo
 
 See **[SCRIPTS.md](SCRIPTS.md)** for the full catalogue of utilities and games included, with controls and save-file paths.
