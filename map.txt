@@ -8,6 +8,7 @@ game/simon.lua
 game/snake.lua
 game/stacker.lua
 game/tamagotchi.lua
+game/tetris.lua
 game/tic-tac-toe.lua
 network/crypto-price.lua
 network/hacker-news.lua
@@ -20,7 +21,9 @@ utility/clock.lua
 utility/coin-flip.lua
 utility/dice-roller.lua
 utility/magic-8ball.lua
+utility/metronome.lua
 utility/morse/generator.lua
 utility/morse/simulator.lua
 utility/morse/training.lua
+utility/scoreboard.lua
 utility/stopwatch.lua
