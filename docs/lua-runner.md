@@ -200,46 +200,14 @@ uni.beep(150,  120)  -- collision thud
 
 ### `uni.useTouch()` / `uni.useNav()`
 
-Touch boards only. `uni.useTouch()` hands the **whole screen** to the script: it hides the firmware's touch-nav overlay (the coloured edge zones that map taps to up/down/ok/back) so the script can use `nav.touchX()` / `nav.touchY()` / `nav.isTouched()` over the full display without the nav guides painted on top. `uni.useNav()` brings the nav overlay back.
-
-Both are **no-ops on button-only boards** (where disabling nav would just trap the user) — so it's safe to call them unconditionally in a portable script. Nav is **re-enabled automatically when the script exits**, so you only need `uni.useNav()` if you want it back mid-script.
+Touch boards only, and **cosmetic**: they toggle the on-screen touch-nav *overlay* — the coloured edge bars that mark the up / ok / down / back zones. `uni.useTouch()` hides them; `uni.useNav()` shows them. The runner already hides the overlay for the duration of a script on touch-nav boards, so most scripts never need to call either — they exist for the rare script that wants the zone guides drawn (`uni.useNav()`) or explicitly cleared. Both are **no-ops on button-only boards**, and the overlay is restored automatically when the script exits.
 
 ```lua
-local nav = require("uni.nav")
-
-uni.useTouch()                 -- full-screen raw touch, no nav zones drawn
-
-while true do
-  if nav.isTouched() then
-    lcd.fillCircle(nav.touchX(), nav.touchY(), 6, lcd.color(0, 220, 0))
-  end
-  uni.delay(16)
-end
--- nav restored automatically on exit
+uni.useTouch()                 -- hide the zone overlay bars; draw on a clean screen
 ```
 
-> [!note]
-> Raw touch coordinates (`nav.touchX/Y/isTouched`) work whether or not you call `uni.useTouch()` — this just controls whether the nav overlay zones are painted over your drawing.
-
-> [!warning] Always give the user a way out
-> With the nav overlay hidden the user can no longer see where the "back" zone is, so a `useTouch()` script **must draw its own visible "Back" / "Exit" button** and act on it — break the loop (or call `uni.useNav()`) when it's tapped. Without one the user is trapped in your program with no obvious way to leave.
->
-> ```lua
-> uni.useTouch()
-> local BTN = { x = 0, y = 0, w = 60, h = 24 }   -- top-left "Exit" button
-> lcd.fillRoundRect(BTN.x, BTN.y, BTN.w, BTN.h, 4, lcd.color(180, 40, 40))
-> lcd.textColor(0xFFFF); lcd.print(BTN.x + 10, BTN.y + 8, "Exit")
->
-> while true do
->   if nav.btn() == "back" then break end        -- physical/zone back still works
->   if nav.isTouched() then
->     local tx, ty = nav.touchX(), nav.touchY()
->     if tx >= BTN.x and tx < BTN.x + BTN.w and
->        ty >= BTN.y and ty < BTN.y + BTN.h then break end   -- tapped Exit
->   end
->   uni.delay(16)
-> end
-> ```
+> [!important] These do not disable navigation
+> `uni.useTouch()` only stops the overlay bars being painted — taps still produce `nav.btn()` directions from their zone (left = `"back"`, right column = up / ok / down) exactly as before. **There is no flag that turns that off.** To own raw taps across the whole screen, hit-test your own targets first and fall through to `nav.btn()` — see [How touch maps to navigation](#how-touch-maps-to-navigation-important) above.
 
 ---
 
@@ -596,6 +564,50 @@ end
 
 ---
 
+### How touch maps to navigation (important)
+
+On a **touch-nav board** (no physical buttons — e.g. CoreS3, CYD) the screen is carved into invisible nav zones, and `nav.btn()` is produced from *which zone a tap fell in*:
+
+```
+┌──────┬──────────────────┐
+│      │       UP         │   left quarter  → "back"
+│      ├──────────────────┤   right column, top third    → "up"
+│ BACK │       OK         │   right column, middle third → "ok"
+│      ├──────────────────┤   right column, bottom third → "down"
+│      │       DOWN       │
+└──────┴──────────────────┘
+```
+
+So a single tap is reported **two ways at once**: as raw coordinates (`nav.touchX/Y/isTouched`) *and* as a `nav.btn()` direction. A tap in the left quarter returns `"back"` even though, to your script, the finger landed on whatever you drew there.
+
+> [!warning] Hit-test your own targets before honouring `nav.btn()`
+> If your script does its own coordinate hit-testing (a grid, on-screen buttons, a canvas), resolve the touch **first** and only fall back to the `nav.btn()` direction when the tap missed everything. Otherwise a tap on one of your targets that happens to sit in the `"back"` zone will exit your script. (`game/tic-tac-toe.lua` uses this pattern; it's also how the firmware main menu handles its icon grid.)
+>
+> ```lua
+> while true do
+>   local btn = nav.btn()                 -- the release event; touch taps come through here too
+>   if btn ~= "none" then
+>     local hit = cellAt(nav.touchX(), nav.touchY())   -- your own hit-box test
+>     if hit then
+>       select(hit)                       -- a tap on a target wins over the zone it fell in
+>     elseif btn == "back" then
+>       break                             -- a real back: the tap missed every target
+>     elseif btn == "up" or btn == "down" then
+>       moveCursor(btn)                    -- zone directions still drive button-board nav
+>     elseif btn == "ok" then
+>       confirm()
+>     end
+>   end
+>   uni.delay(33)
+> end
+> ```
+>
+> `nav.touchX/Y` return `-1` on button-only boards, so `cellAt()` is `nil` there and `nav.btn()` drives everything exactly as on a stick/keyboard board — the same code path works on every device.
+>
+> There is **no flag that stops taps from generating `nav.btn()`** — the zone mapping is always live, so hit-testing first is the pattern, not a toggle. (`uni.useTouch()` only hides the on-screen zone *overlay* bars so they don't paint over your drawing; it does not change what `nav.btn()` reports.)
+
+---
+
 ## `uni.input` — Modal prompts
 
 Each call blocks the script until the user dismisses the popup. Returns `nil` on cancel. Internally the script's Lua task parks the request on the engine and the runner's loop task drives the actual popup — so the popup gets the same `Uni.update()` flow as any other firmware screen.
@@ -914,6 +926,9 @@ You are writing a Lua 5.1 script for the UniGeek ESP32 firmware Lua Runner.
 - Locals declared INSIDE the loop are re-created each iteration as normal.
 - `break` exits the loop; the runner exits automatically when the script returns — no exit() needed.
 - The Back button: nav.btn() returns "back" — your script must break to exit the loop.
+- On touch-nav boards (CoreS3, CYD — no physical buttons) nav.btn() comes from WHICH zone a
+  tap fell in, so a tap is reported BOTH as raw coords AND as a direction — see the touch-nav
+  hit-test rule below before mixing touch with nav.btn().
 - uni.delay(ms) sleeps the Lua task; nav state stays fresh across delays.
 - Text datum is TL_DATUM (top-left) at script start and restored on exit.
 
@@ -952,26 +967,29 @@ For changing text: use lcd.textColor(fg, bg) + string.format padding instead of 
 For complex composited frames: build into lcd.sprite(w, h) and sp:push() once per frame.
 lcd.clear() / lcd.fillScreen() are fine for static screens (idle, game over) drawn only on state entry.
 
-## useTouch escape-hatch rule — CRITICAL
-If the script calls uni.useTouch(), the firmware nav overlay is hidden — the user can NO
-LONGER see where the "back" zone is. Every useTouch() script MUST therefore:
-  1. Draw a visible "Back" / "Exit" button on screen (e.g. a labelled rect in a corner).
-  2. Hit-test taps against it each frame and break (or call uni.useNav()) when tapped.
-  3. Keep the nav.btn() == "back" check as a fallback for physical/zone back.
-Without a visible exit the user is trapped in the program. nav is auto-restored on exit, so
-you do not need uni.useNav() unless you want the overlay back mid-script.
-  uni.useTouch()
-  local EX = { x = 0, y = 0, w = 60, h = 24 }
-  lcd.fillRoundRect(EX.x, EX.y, EX.w, EX.h, 4, lcd.color(180, 40, 40))
-  lcd.textColor(0xFFFF); lcd.print(EX.x + 10, EX.y + 8, "Exit")
+## Touch-nav hit-test rule — CRITICAL
+On touch-nav boards (CoreS3, CYD — no physical buttons) the screen is split into fixed zones
+and nav.btn() is decided by WHICH zone a tap fell in: left quarter = "back", right column
+thirds = "up" / "ok" / "down". So every tap is reported BOTH ways at once — as raw coords
+(nav.touchX/Y/isTouched) AND as a nav.btn() direction.
+If your script does its OWN coordinate hit-testing (a grid, on-screen buttons, a canvas) you
+MUST resolve the touch FIRST and fall back to nav.btn()=="back" only when the tap missed every
+target. Otherwise a tap on a target that happens to sit in the "back" zone exits the script.
+nav.touchX/Y are -1 on button-only boards, so the SAME code drives stick/keyboard nav unchanged.
   while true do
-    if nav.btn() == "back" then break end
-    if nav.isTouched() then
-      local tx, ty = nav.touchX(), nav.touchY()
-      if tx >= EX.x and tx < EX.x + EX.w and ty >= EX.y and ty < EX.y + EX.h then break end
+    local btn = nav.btn()                 -- release event; touch taps arrive here too
+    if btn ~= "none" then
+      local hit = cellAt(nav.touchX(), nav.touchY())   -- your own hit-box test
+      if hit then select(hit)             -- a tap on a target beats the zone it fell in
+      elseif btn == "back" then break      -- a real back: the tap missed everything
+      elseif btn == "up" or btn == "down" then moveCursor(btn)
+      elseif btn == "ok" then confirm() end
     end
-    uni.delay(16)
+    uni.delay(33)
   end
+There is NO flag that stops taps from firing nav.btn() — the zone mapping is always live, so
+hit-testing first is the pattern, not a toggle. uni.useTouch() only hides the zone OVERLAY bars
+(cosmetic) and does NOT change what nav.btn() reports. game/tic-tac-toe.lua uses this pattern.
 
 ## Complete API
 
@@ -981,10 +999,9 @@ uni.delay(ms)           -- pause ms milliseconds; nav state stays fresh across d
 uni.millis()            -- returns uptime in milliseconds (number)
 uni.heap()              -- returns free internal heap in bytes (number)
 uni.beep(freq, ms)      -- play tone; no-op on boards without speaker
-uni.useTouch()          -- touch boards: hide nav overlay, give script the full screen
-                        --   MUST draw a visible Back/Exit button + break on it,
-                        --   else the user is trapped (nav guides are hidden)
-uni.useNav()            -- touch boards: restore nav overlay (auto-restored on exit anyway)
+uni.useTouch()          -- touch boards: hide the nav zone OVERLAY bars (cosmetic only — does
+                        --   NOT stop taps firing nav.btn(); hit-test first, see rule above)
+uni.useNav()            -- touch boards: restore the nav zone overlay (auto-restored on exit)
 
 ### Input  (require "uni.nav" first)
 nav.btn()               -- returns one string per consumed press:

@@ -424,9 +424,13 @@ local function makeAIMove()
   afterMove(false)
 end
 
--- Touch support: nav.isTouched() is always false on button-only boards, so
--- the tap handling below is a safe no-op there and needs no capability gate.
-local touch_held = false   -- edge-detect: was the screen being touched last frame?
+-- Touch support: a tap that lands on a cell takes priority over the nav zone it
+-- fell in — the same trick the firmware main menu uses (hit-test first, fall
+-- through to BACK only when the tap missed). That stops a tap on a cell sitting
+-- in the touch-nav BACK zone from bouncing the game out. nav.isTouched() is
+-- always false on button-only boards, so there cellAt() never fires and the nav
+-- buttons drive everything as before.
+local touch_seen = false   -- did a touch occur during the current press gesture?
 
 local CONTROLS_HINT = "UP/DOWN cell    OK place    BACK exit"
 
@@ -451,21 +455,27 @@ drawHint(CONTROLS_HINT)
 
 -- ── Main loop ─────────────────────────────────────────────
 while true do
+  -- A touch held this frame marks the gesture as a tap; the matching nav.btn()
+  -- event arrives on release. We resolve which cell it hit then, so the cell
+  -- always wins over the zone direction the release would otherwise report.
+  if nav.isTouched() then touch_seen = true end
   local btn = nav.btn()
-  if btn == "back" then break end
-
-  -- Edge-detect a fresh tap: a contact this frame that wasn't down last frame.
-  -- nav.isTouched() is false on non-touch boards, so tapx stays nil there.
-  local tapx, tapy
-  local touching = nav.isTouched()
-  if touching and not touch_held then
-    tapx, tapy = nav.touchX(), nav.touchY()
-  end
-  touch_held = touching
 
   if game_state == "playing" then
-    if turn == "player" then
-      if btn == "up" or btn == "down" then
+    if turn == "player" and btn ~= "none" then
+      -- cellAt is only consulted for touch gestures; on button boards touch_seen
+      -- stays false so btn drives navigation exactly as before.
+      local cell = touch_seen and cellAt(nav.touchX(), nav.touchY()) or nil
+      if cell then
+        if board[cell] == 0 then
+          local prev = cursor
+          cursor = cell
+          drawCell(prev)          -- clear the old cursor highlight before placing
+          commitMove()
+        else
+          uni.beep(200, 50)       -- tapped an occupied cell
+        end
+      elseif btn == "up" or btn == "down" then
         local dir = (btn == "up") and -1 or 1
         local next_pos = findEmpty(cursor, dir)
         if next_pos and next_pos ~= cursor then
@@ -477,18 +487,8 @@ while true do
         end
       elseif btn == "ok" then
         commitMove()
-      elseif tapx then
-        local cell = cellAt(tapx, tapy)
-        if cell then
-          if board[cell] == 0 then
-            local prev = cursor
-            cursor = cell
-            drawCell(prev)        -- clear the old cursor highlight before placing
-            commitMove()
-          else
-            uni.beep(200, 50)     -- tapped an occupied cell
-          end
-        end
+      elseif btn == "back" then
+        break                     -- a real back: tap missed every cell
       end
     end
   else
@@ -497,12 +497,14 @@ while true do
       drawPopup()
       popup_drawn = true
     end
-    if btn == "ok" or tapx then
-      startGame()
+    if btn ~= "none" then
+      if btn == "back" then break end   -- BACK / left-zone tap exits
+      startGame()                       -- OK / any other tap starts a new game
       drawScene()
       drawHint(CONTROLS_HINT)
     end
   end
 
+  if btn ~= "none" then touch_seen = false end
   uni.delay(33)
 end
