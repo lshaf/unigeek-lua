@@ -5,10 +5,12 @@
 -- The mark about to disappear next is shown dimmed.
 -- The AI runs a depth-limited alpha-beta minimax. Player is X (moves first), AI is O.
 --
---   UP   : previous empty cell (skips occupied)
---   DOWN : next empty cell (skips occupied)
---   OK   : place X at cursor / start a new game from the popup
---   BACK : exit (also dismisses the popup)
+--   UP    : previous empty cell (skips occupied)
+--   DOWN  : next empty cell (skips occupied)
+--   OK    : place X at cursor / start a new game from the popup
+--   BACK  : exit (also dismisses the popup)
+--   TOUCH : on touch-capable boards, tap a cell to place there directly
+--           (tap anywhere to start a new game from the popup)
 --
 -- Wins/losses persist as JSON in /unigeek/games/tic-tac-toe.txt.
 
@@ -204,6 +206,15 @@ end
 
 local function findFirstEmpty()
   for i = 1, 9 do if board[i] == 0 then return i end end
+  return nil
+end
+
+-- Map a touch coordinate to a board cell (1..9), or nil if it missed the grid.
+local function cellAt(px, py)
+  for i = 1, 9 do
+    local x, y, w, _ = cellRect(i)
+    if px >= x and px < x + w and py >= y and py < y + w then return i end
+  end
   return nil
 end
 
@@ -413,16 +424,47 @@ local function makeAIMove()
   afterMove(false)
 end
 
+-- Touch support: only enabled on boards that report a touchscreen.
+local has_touch   = (type(nav.hasTouch) == "function") and nav.hasTouch() or false
+local touch_held  = false   -- edge-detect: was the screen being touched last frame?
+
+local CONTROLS_HINT = has_touch
+  and "Tap a cell    BACK exit"
+  or  "UP/DOWN cell    OK place    BACK exit"
+
+-- Place X at `cursor`, then (if the game continues) let the AI reply. Shared by
+-- the OK button and a touch tap so both routes behave identically.
+local function commitMove()
+  playerMove()
+  if game_state == "playing" and turn == "ai" then
+    makeAIMove()
+    drawHint(CONTROLS_HINT)
+    drawHUD()
+  else
+    drawHUD()
+  end
+end
+
 -- ── Init ──────────────────────────────────────────────────
 stats = loadStats()
 startGame()
 drawScene()
-drawHint("UP/DOWN cell    OK place    BACK exit")
+drawHint(CONTROLS_HINT)
 
 -- ── Main loop ─────────────────────────────────────────────
 while true do
   local btn = nav.btn()
   if btn == "back" then break end
+
+  -- Edge-detect a fresh tap (down this frame, not held over from the last one).
+  -- Works whether nav.touch() reports "down" once per press or every frame held.
+  local tapx, tapy
+  if has_touch then
+    local t = nav.touch()
+    local down = t and t.state == "down"
+    if down and not touch_held then tapx, tapy = t.x, t.y end
+    touch_held = down
+  end
 
   if game_state == "playing" then
     if turn == "player" then
@@ -437,13 +479,18 @@ while true do
           uni.beep(900, 12)
         end
       elseif btn == "ok" then
-        playerMove()
-        if game_state == "playing" and turn == "ai" then
-          makeAIMove()
-          drawHint("UP/DOWN cell    OK place    BACK exit")
-          drawHUD()
-        else
-          drawHUD()
+        commitMove()
+      elseif tapx then
+        local cell = cellAt(tapx, tapy)
+        if cell then
+          if board[cell] == 0 then
+            local prev = cursor
+            cursor = cell
+            drawCell(prev)        -- clear the old cursor highlight before placing
+            commitMove()
+          else
+            uni.beep(200, 50)     -- tapped an occupied cell
+          end
         end
       end
     end
@@ -453,10 +500,10 @@ while true do
       drawPopup()
       popup_drawn = true
     end
-    if btn == "ok" then
+    if btn == "ok" or tapx then
       startGame()
       drawScene()
-      drawHint("UP/DOWN cell    OK place    BACK exit")
+      drawHint(CONTROLS_HINT)
     end
   end
 
