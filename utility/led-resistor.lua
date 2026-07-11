@@ -1,3 +1,9 @@
+--[[
+@title LED Resistor
+@description Calculate the series resistor for an LED from supply voltage, forward voltage, and target current.
+@category Utility
+@author lshaf
+]]
 -- led-resistor.lua — LED series-resistor calculator
 -- Given the supply voltage, the LED's forward voltage, and the target
 -- current in mA, computes the series resistor needed, the nearest E12

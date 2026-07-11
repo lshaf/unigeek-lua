@@ -1,3 +1,9 @@
+--[[
+@title Higher / Lower
+@description Guess whether the next card (1–13) is higher or lower and build up a streak.
+@category Game
+@author lshaf
+]]
 -- higher-lower.lua — Higher / Lower
 -- A card with a value 1..13 is shown. Guess if the next card will be
 -- HIGHER (UP) or LOWER (DOWN). Ties count as correct. A wrong guess

@@ -1,3 +1,9 @@
+--[[
+@title Base Converter
+@description Enter a decimal value (0–65535) and see it in hexadecimal, octal, and binary.
+@category Utility
+@author lshaf
+]]
 -- base-converter.lua — Base Converter
 -- Enter a decimal value (0..65535); see it expressed in hex, octal,
 -- and binary simultaneously. Binary is space-grouped every 4 bits.

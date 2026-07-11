@@ -1,3 +1,9 @@
+--[[
+@title Simon
+@description Memory game — repeat the growing sequence of coloured tones for as long as you can.
+@category Game
+@author lshaf
+]]
 -- simon.lua — Simon (memory game)
 -- The device plays a growing sequence of beeps on three coloured
 -- lanes. Repeat it back; survive as many rounds as you can.

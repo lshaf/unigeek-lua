@@ -1,3 +1,9 @@
+--[[
+@title Stacker
+@description Time your taps to stack the sliding blocks as high as you can without missing.
+@category Game
+@author lshaf
+]]
 -- stacker.lua — Block Stacker
 -- A coloured block slides left and right along the top of the screen.
 -- Press OK to drop it on the stack below — any overhang past the

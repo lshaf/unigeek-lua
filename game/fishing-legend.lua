@@ -1,3 +1,9 @@
+--[[
+@title Fishing Legend
+@description Rarity-tiered fishing game — cast, hook fish across tiers, and grow your catch log. Ported from @metalgalz's Bruce app.
+@category Game
+@author lshaf
+]]
 -- fishing-legend.lua — Port of @metalgalz's "Fishing Legend" (originally a
 -- JavaScript app for the Bruce launcher). Rarity-tiered fishing with a
 -- shop, durable rods, stackable charms, drop-rate luck mechanics + pity

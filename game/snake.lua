@@ -1,3 +1,9 @@
+--[[
+@title Snake
+@description Relative-turn Snake — steer by turning left/right, eat food, and avoid your tail.
+@category Game
+@author lshaf
+]]
 -- snake.lua — Snake (relative-turn)
 -- The snake auto-advances along the grid; you steer it by turning
 -- relative to its current heading. Eat food to grow, don't hit a

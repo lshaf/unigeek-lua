@@ -1,3 +1,9 @@
+--[[
+@title Tic-Tac-Toe
+@description Endless Tic-Tac-Toe vs AI — each side keeps at most three sliding marks on the board.
+@category Game
+@author lshaf
+]]
 -- tic-tac-toe.lua — Endless Tic-Tac-Toe vs AI
 -- Sliding-piece variant: each side keeps at most 3 marks on the board. Placing
 -- a 4th (the 7th turn for X, 8th for O) makes that side's OLDEST mark vanish, so

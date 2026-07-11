@@ -1,3 +1,9 @@
+--[[
+@title Pong
+@description Classic paddle game against the AI — out-rally the opponent to score.
+@category Game
+@author lshaf
+]]
 -- pong.lua — Pong vs AI
 -- Classic paddle game. You are the left paddle, AI is the right.
 -- Ball direction after a hit varies with where it strikes the paddle

@@ -1,3 +1,9 @@
+--[[
+@title Metronome
+@description Steady 4/4 metronome with an accented downbeat and adjustable tempo.
+@category Utility
+@author lshaf
+]]
 -- metronome.lua — Tempo metronome
 -- A steady 4/4 click with an accented downbeat. The tempo is timed off
 -- uni.millis() (not delay-accumulation) so it stays accurate even while the

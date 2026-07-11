@@ -1,3 +1,9 @@
+--[[
+@title Tamagotchi
+@description Virtual pet that grows hungry and bored over time — feed it and play to keep it alive. Ported from hxd57's Bruce app.
+@category Game
+@author lshaf
+]]
 -- tamagotchi.lua — virtual pet, ported from hxd57's Tamagotchi (V2) for the
 -- Bruce launcher. Pet decays over time: hunger climbs, happiness and
 -- cleanliness drop. Feed / pet / clean to keep stats up. State persists to

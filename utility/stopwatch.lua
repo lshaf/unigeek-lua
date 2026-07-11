@@ -1,3 +1,9 @@
+--[[
+@title Stopwatch
+@description MM:SS.cc stopwatch with lap recording (in-memory only).
+@category Utility
+@author lshaf
+]]
 -- stopwatch.lua — Stopwatch
 -- Big MM:SS.cc display with lap recording. State is in-memory only —
 -- exiting the script clears everything.

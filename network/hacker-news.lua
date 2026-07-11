@@ -1,3 +1,9 @@
+--[[
+@title Hacker News
+@description Browse the top 10 Hacker News stories, live over WiFi.
+@category Network
+@author lshaf
+]]
 -- hacker-news.lua — Top 10 stories from Hacker News
 -- Pulls /topstories.json once to get the ID list, then fetches the
 -- first ten items individually. UP / DOWN scroll the cursor through
