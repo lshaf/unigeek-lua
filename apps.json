@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-11T04:43:24.481Z",
+  "generatedAt": "2026-07-11T05:28:57.143Z",
   "count": 34,
   "apps": [
     {
@@ -25,7 +25,8 @@
       "description": "Space Invader clone — move your ship and shoot down the descending alien waves.",
       "category": "Game",
       "author": "lshaf",
-      "doc": "game/invader.md"
+      "doc": "game/invader.md",
+      "image": "game/invader.jpg"
     },
     {
       "path": "game/mastermind.lua",
@@ -41,7 +42,8 @@
       "description": "Jacks-or-Better 5-card draw video poker with hold, draw, and credit betting.",
       "category": "Game",
       "author": "lshaf",
-      "doc": "game/poker.md"
+      "doc": "game/poker.md",
+      "image": "game/poker.jpg"
     },
     {
       "path": "game/pong.lua",
@@ -49,7 +51,8 @@
       "description": "Classic paddle game against the AI — out-rally the opponent to score.",
       "category": "Game",
       "author": "lshaf",
-      "doc": "game/pong.md"
+      "doc": "game/pong.md",
+      "image": "game/pong.jpg"
     },
     {
       "path": "game/reaction.lua",
@@ -57,7 +60,8 @@
       "description": "Test your reflexes — wait for the go signal, then tap as fast as you can.",
       "category": "Game",
       "author": "lshaf",
-      "doc": "game/reaction.md"
+      "doc": "game/reaction.md",
+      "image": "game/reaction.jpg"
     },
     {
       "path": "game/simon.lua",
@@ -65,7 +69,8 @@
       "description": "Memory game — repeat the growing sequence of coloured tones for as long as you can.",
       "category": "Game",
       "author": "lshaf",
-      "doc": "game/simon.md"
+      "doc": "game/simon.md",
+      "image": "game/simon.jpg"
     },
     {
       "path": "game/snake.lua",
@@ -73,7 +78,8 @@
       "description": "Relative-turn Snake — steer by turning left/right, eat food, and avoid your tail.",
       "category": "Game",
       "author": "lshaf",
-      "doc": "game/snake.md"
+      "doc": "game/snake.md",
+      "image": "game/snake.jpg"
     },
     {
       "path": "game/stacker.lua",
@@ -122,7 +128,7 @@
       "category": "Network",
       "author": "lshaf",
       "doc": "network/hacker-news.md",
-      "image": "network/img/hacker-news.png"
+      "image": "network/hacker-news.jpg"
     },
     {
       "path": "network/iss-tracker.lua",
@@ -130,7 +136,8 @@
       "description": "Live International Space Station latitude/longitude, polled over WiFi every few seconds.",
       "category": "Network",
       "author": "lshaf",
-      "doc": "network/iss-tracker.md"
+      "doc": "network/iss-tracker.md",
+      "image": "network/iss-tracker.jpg"
     },
     {
       "path": "network/weather.lua",
@@ -138,7 +145,8 @@
       "description": "Current conditions plus today's high and low from the open-meteo API (no key needed).",
       "category": "Network",
       "author": "lshaf",
-      "doc": "network/weather.md"
+      "doc": "network/weather.md",
+      "image": "network/weather.jpg"
     },
     {
       "path": "utility/base-converter.lua",
@@ -146,7 +154,8 @@
       "description": "Enter a decimal value (0–65535) and see it in hexadecimal, octal, and binary.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/base-converter.md"
+      "doc": "utility/base-converter.md",
+      "image": "utility/base-converter.jpg"
     },
     {
       "path": "utility/bitwise.lua",
@@ -154,7 +163,8 @@
       "description": "Experiment with 16-bit bitwise operations — AND, OR, XOR, and shifts on two operands.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/bitwise.md"
+      "doc": "utility/bitwise.md",
+      "image": "utility/bitwise.jpg"
     },
     {
       "path": "utility/caesar-cipher.lua",
@@ -162,7 +172,8 @@
       "description": "Encode or decode text with a shift-based Caesar cipher.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/caesar-cipher.md"
+      "doc": "utility/caesar-cipher.md",
+      "image": "utility/caesar-cipher.jpg"
     },
     {
       "path": "utility/calculator.lua",
@@ -170,7 +181,8 @@
       "description": "Two-operand arithmetic with on-screen prompts for the numbers and operator.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/calculator.md"
+      "doc": "utility/calculator.md",
+      "image": "utility/calculator.jpg"
     },
     {
       "path": "utility/clock.lua",
@@ -178,7 +190,8 @@
       "description": "Large HH:MM:SS clock with the date and weekday below.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/clock.md"
+      "doc": "utility/clock.md",
+      "image": "utility/clock.jpg"
     },
     {
       "path": "utility/coin-flip.lua",
@@ -186,7 +199,8 @@
       "description": "Flip a virtual coin with a short heads/tails animation.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/coin-flip.md"
+      "doc": "utility/coin-flip.md",
+      "image": "utility/coin-flip.jpg"
     },
     {
       "path": "utility/dice-roller.lua",
@@ -194,7 +208,8 @@
       "description": "Roll a die of your chosen type and see the result with a rolling animation.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/dice-roller.md"
+      "doc": "utility/dice-roller.md",
+      "image": "utility/dice-roller.jpg"
     },
     {
       "path": "utility/led-resistor.lua",
@@ -202,7 +217,8 @@
       "description": "Calculate the series resistor for an LED from supply voltage, forward voltage, and target current.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/led-resistor.md"
+      "doc": "utility/led-resistor.md",
+      "image": "utility/led-resistor.jpg"
     },
     {
       "path": "utility/magic-8ball.lua",
@@ -210,7 +226,8 @@
       "description": "Ask a question, shake the ball, and get a classic Magic 8-Ball answer.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/magic-8ball.md"
+      "doc": "utility/magic-8ball.md",
+      "image": "utility/magic-8ball.jpg"
     },
     {
       "path": "utility/metronome.lua",
@@ -218,7 +235,8 @@
       "description": "Steady 4/4 metronome with an accented downbeat and adjustable tempo.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/metronome.md"
+      "doc": "utility/metronome.md",
+      "image": "utility/metronome.jpg"
     },
     {
       "path": "utility/morse/generator.lua",
@@ -226,7 +244,8 @@
       "description": "Type text and transmit it as Morse code with a flashing lamp and matching tones.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/morse/generator.md"
+      "doc": "utility/morse/generator.md",
+      "image": "utility/morse/generator.jpg"
     },
     {
       "path": "utility/morse/simulator.lua",
@@ -234,7 +253,8 @@
       "description": "Tap out Morse with the buttons and look up the pattern you keyed.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/morse/simulator.md"
+      "doc": "utility/morse/simulator.md",
+      "image": "utility/morse/simulator.jpg"
     },
     {
       "path": "utility/morse/training.lua",
@@ -242,7 +262,8 @@
       "description": "Browse the Morse alphabet one letter at a time, each with audio playback.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/morse/training.md"
+      "doc": "utility/morse/training.md",
+      "image": "utility/morse/training.jpg"
     },
     {
       "path": "utility/ohms-law.lua",
@@ -250,7 +271,8 @@
       "description": "Solve for voltage, current, resistance, or power given any two of the four.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/ohms-law.md"
+      "doc": "utility/ohms-law.md",
+      "image": "utility/ohms-law.jpg"
     },
     {
       "path": "utility/resistor.lua",
@@ -258,7 +280,8 @@
       "description": "Read a 4-band resistor's value and tolerance by dialing in each band colour.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/resistor.md"
+      "doc": "utility/resistor.md",
+      "image": "utility/resistor.jpg"
     },
     {
       "path": "utility/scoreboard.lua",
@@ -266,7 +289,8 @@
       "description": "Unified high-score viewer that reads every game’s save file under /unigeek/games.",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/scoreboard.md"
+      "doc": "utility/scoreboard.md",
+      "image": "utility/scoreboard.jpg"
     },
     {
       "path": "utility/stopwatch.lua",
@@ -274,7 +298,8 @@
       "description": "MM:SS.cc stopwatch with lap recording (in-memory only).",
       "category": "Utility",
       "author": "lshaf",
-      "doc": "utility/stopwatch.md"
+      "doc": "utility/stopwatch.md",
+      "image": "utility/stopwatch.jpg"
     }
   ]
 }

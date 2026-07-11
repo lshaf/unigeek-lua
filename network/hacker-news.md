@@ -4,7 +4,7 @@ Read the front page of [Hacker News](https://news.ycombinator.com) straight from
 UniGeek. The app pulls the current top-stories list over WiFi and lets you scroll through
 the ten highest-ranked items, showing score, comment count, and author for each.
 
-![Hacker News on the UniGeek](img/hacker-news.png)
+![Hacker News on the UniGeek](hacker-news.jpg)
 
 ## Controls
 
