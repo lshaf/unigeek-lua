@@ -1,3 +1,9 @@
+--[[
+@title ISS Tracker
+@description Live International Space Station latitude/longitude, polled over WiFi every few seconds.
+@category Network
+@author lshaf
+]]
 -- iss-tracker.lua — Live ISS position
 -- Polls wheretheiss.at every 5 s and shows the station's latitude /
 -- longitude, altitude (km), velocity (km/h) and whether it's currently

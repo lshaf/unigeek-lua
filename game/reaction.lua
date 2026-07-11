@@ -1,3 +1,9 @@
+--[[
+@title Reaction Timer
+@description Test your reflexes — wait for the go signal, then tap as fast as you can.
+@category Game
+@author lshaf
+]]
 -- reaction.lua — Reaction Timer
 -- A coloured panel guides the user through each attempt:
 --   blue READY?  → press OK to start

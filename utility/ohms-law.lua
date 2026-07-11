@@ -1,3 +1,9 @@
+--[[
+@title Ohm's Law
+@description Solve for voltage, current, resistance, or power given any two of the four.
+@category Utility
+@author lshaf
+]]
 -- ohms-law.lua — Ohm's law / power calculator
 -- Pick which two of voltage (V), current (I), resistance (R) and power (P)
 -- you know; the other two are calculated from Ohm's law and P = V*I.

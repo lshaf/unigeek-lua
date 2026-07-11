@@ -12,6 +12,8 @@ See **[SCRIPTS.md](SCRIPTS.md)** for the full catalogue of utilities and games i
 
 To add a new script, follow **[CONTRIBUTING.md](CONTRIBUTING.md)** — it covers folder conventions, the two index files (`map.txt` and `SCRIPTS.md`) that have to stay in sync, default-hardware controls, save paths, and the testing checklist.
 
+To publish it as an installable app — the metadata header (title/description/category), screenshots, cover images, and how the website App Store and on-device Download pick it up — see **[docs/publishing-apps.md](docs/publishing-apps.md)**.
+
 ---
 
 ## Getting Started

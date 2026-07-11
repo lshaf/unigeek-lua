@@ -1,3 +1,9 @@
+--[[
+@title Calculator
+@description Two-operand arithmetic with on-screen prompts for the numbers and operator.
+@category Utility
+@author lshaf
+]]
 -- calculator.lua — Calculator
 -- Two-operand arithmetic with on-screen modal prompts. Picks operator
 -- from + - * /. Divide-by-zero is flagged as ERR; the calc is kept in

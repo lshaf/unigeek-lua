@@ -1,3 +1,9 @@
+--[[
+@title Resistor Calculator
+@description Read a 4-band resistor's value and tolerance by dialing in each band colour.
+@category Utility
+@author lshaf
+]]
 -- resistor.lua — 4-band resistor color-code calculator
 -- Dial in the colour of each band and read off the resistance and tolerance.
 -- Two significant-digit bands, a multiplier band, and a tolerance band are

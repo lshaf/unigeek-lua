@@ -1,3 +1,9 @@
+--[[
+@title Clock
+@description Large HH:MM:SS clock with the date and weekday below.
+@category Utility
+@author lshaf
+]]
 -- clock.lua — Clock
 -- Big HH:MM:SS in the centre with date + weekday underneath. Reads
 -- the device RTC via uni.time. If the RTC hasn't been synced (no NTP

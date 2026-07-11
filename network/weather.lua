@@ -1,3 +1,9 @@
+--[[
+@title Weather
+@description Current conditions plus today's high and low from the open-meteo API (no key needed).
+@category Network
+@author lshaf
+]]
 -- weather.lua — Current weather and today's high / low
 -- Uses the open-meteo API (no key required). On first run the script
 -- prompts for a latitude and longitude and saves them to

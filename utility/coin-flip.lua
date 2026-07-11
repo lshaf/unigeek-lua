@@ -1,3 +1,9 @@
+--[[
+@title Coin Flip
+@description Flip a virtual coin with a short heads/tails animation.
+@category Utility
+@author lshaf
+]]
 -- coin-flip.lua — Coin Flip
 -- Press OK to flip a coin. A short animation cycles heads/tails before
 -- settling on the result. Running tally and a strip of the last flips

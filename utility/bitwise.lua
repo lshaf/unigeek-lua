@@ -1,3 +1,9 @@
+--[[
+@title Bitwise Playground
+@description Experiment with 16-bit bitwise operations — AND, OR, XOR, and shifts on two operands.
+@category Utility
+@author lshaf
+]]
 -- bitwise.lua — 16-bit bitwise playground
 -- Pick an operation, enter operand A (and B where it applies), and see A, B
 -- and the result side by side in decimal, hex and 16-bit binary (grouped in

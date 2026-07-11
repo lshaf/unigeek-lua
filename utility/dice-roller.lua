@@ -1,3 +1,9 @@
+--[[
+@title Dice Roller
+@description Roll a die of your chosen type and see the result with a rolling animation.
+@category Utility
+@author lshaf
+]]
 -- dice-roller.lua — Dice Roller
 -- Pick a die type, roll it, see the result big in the centre with a
 -- short rolling animation. The most recent rolls collect in a strip

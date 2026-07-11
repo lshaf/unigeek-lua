@@ -1,3 +1,9 @@
+--[[
+@title Tetris
+@description Classic Tetris — 10×20 well, 7-bag randomiser, line clears, and speeding levels.
+@category Game
+@author lshaf
+]]
 -- tetris.lua — Tetris for the UniGeek Lua Runner
 -- Standard 10x20 well, 7-bag randomiser, line clears, levels that speed up
 -- gravity every 10 lines. A short lock delay lets you still slide a piece

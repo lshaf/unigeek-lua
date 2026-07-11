@@ -1,0 +1,305 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-11T05:34:16.599Z",
+  "count": 34,
+  "apps": [
+    {
+      "path": "game/fishing-legend.lua",
+      "title": "Fishing Legend",
+      "description": "Rarity-tiered fishing game — cast, hook fish across tiers, and grow your catch log. Ported from @metalgalz's Bruce app.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/fishing-legend.md"
+    },
+    {
+      "path": "game/higher-lower.lua",
+      "title": "Higher / Lower",
+      "description": "Guess whether the next card (1–13) is higher or lower and build up a streak.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/higher-lower.md"
+    },
+    {
+      "path": "game/invader.lua",
+      "title": "Space Invaders",
+      "description": "Space Invader clone — move your ship and shoot down the descending alien waves.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/invader.md",
+      "image": "game/invader.jpg"
+    },
+    {
+      "path": "game/mastermind.lua",
+      "title": "Mastermind",
+      "description": "Code-breaker: crack the secret 4-digit code (digits 1–6) using peg feedback.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/mastermind.md"
+    },
+    {
+      "path": "game/poker.lua",
+      "title": "Video Poker",
+      "description": "Jacks-or-Better 5-card draw video poker with hold, draw, and credit betting.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/poker.md",
+      "image": "game/poker.jpg"
+    },
+    {
+      "path": "game/pong.lua",
+      "title": "Pong",
+      "description": "Classic paddle game against the AI — out-rally the opponent to score.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/pong.md",
+      "image": "game/pong.jpg"
+    },
+    {
+      "path": "game/reaction.lua",
+      "title": "Reaction Timer",
+      "description": "Test your reflexes — wait for the go signal, then tap as fast as you can.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/reaction.md",
+      "image": "game/reaction.jpg"
+    },
+    {
+      "path": "game/simon.lua",
+      "title": "Simon",
+      "description": "Memory game — repeat the growing sequence of coloured tones for as long as you can.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/simon.md",
+      "image": "game/simon.jpg"
+    },
+    {
+      "path": "game/snake.lua",
+      "title": "Snake",
+      "description": "Relative-turn Snake — steer by turning left/right, eat food, and avoid your tail.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/snake.md",
+      "image": "game/snake.jpg"
+    },
+    {
+      "path": "game/stacker.lua",
+      "title": "Stacker",
+      "description": "Time your taps to stack the sliding blocks as high as you can without missing.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/stacker.md"
+    },
+    {
+      "path": "game/tamagotchi.lua",
+      "title": "Tamagotchi",
+      "description": "Virtual pet that grows hungry and bored over time — feed it and play to keep it alive. Ported from hxd57's Bruce app.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/tamagotchi.md"
+    },
+    {
+      "path": "game/tetris.lua",
+      "title": "Tetris",
+      "description": "Classic Tetris — 10×20 well, 7-bag randomiser, line clears, and speeding levels.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/tetris.md"
+    },
+    {
+      "path": "game/tic-tac-toe.lua",
+      "title": "Tic-Tac-Toe",
+      "description": "Endless Tic-Tac-Toe vs AI — each side keeps at most three sliding marks on the board.",
+      "category": "Game",
+      "author": "lshaf",
+      "doc": "game/tic-tac-toe.md"
+    },
+    {
+      "path": "network/crypto-price.lua",
+      "title": "Crypto Price Tracker",
+      "description": "Live BTC/USD and ETH/USD prices from the CoinGecko API, refreshed over WiFi.",
+      "category": "Network",
+      "author": "lshaf",
+      "doc": "network/crypto-price.md"
+    },
+    {
+      "path": "network/hacker-news.lua",
+      "title": "Hacker News",
+      "description": "Browse the top 10 Hacker News stories, live over WiFi.",
+      "category": "Network",
+      "author": "lshaf",
+      "doc": "network/hacker-news.md",
+      "image": "network/hacker-news.jpg"
+    },
+    {
+      "path": "network/iss-tracker.lua",
+      "title": "ISS Tracker",
+      "description": "Live International Space Station latitude/longitude, polled over WiFi every few seconds.",
+      "category": "Network",
+      "author": "lshaf",
+      "doc": "network/iss-tracker.md",
+      "image": "network/iss-tracker.jpg"
+    },
+    {
+      "path": "network/weather.lua",
+      "title": "Weather",
+      "description": "Current conditions plus today's high and low from the open-meteo API (no key needed).",
+      "category": "Network",
+      "author": "lshaf",
+      "doc": "network/weather.md",
+      "image": "network/weather.jpg"
+    },
+    {
+      "path": "utility/base-converter.lua",
+      "title": "Base Converter",
+      "description": "Enter a decimal value (0–65535) and see it in hexadecimal, octal, and binary.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/base-converter.md",
+      "image": "utility/base-converter.jpg"
+    },
+    {
+      "path": "utility/bitwise.lua",
+      "title": "Bitwise Playground",
+      "description": "Experiment with 16-bit bitwise operations — AND, OR, XOR, and shifts on two operands.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/bitwise.md",
+      "image": "utility/bitwise.jpg"
+    },
+    {
+      "path": "utility/caesar-cipher.lua",
+      "title": "Caesar Cipher",
+      "description": "Encode or decode text with a shift-based Caesar cipher.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/caesar-cipher.md",
+      "image": "utility/caesar-cipher.jpg"
+    },
+    {
+      "path": "utility/calculator.lua",
+      "title": "Calculator",
+      "description": "Two-operand arithmetic with on-screen prompts for the numbers and operator.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/calculator.md",
+      "image": "utility/calculator.jpg"
+    },
+    {
+      "path": "utility/clock.lua",
+      "title": "Clock",
+      "description": "Large HH:MM:SS clock with the date and weekday below.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/clock.md",
+      "image": "utility/clock.jpg"
+    },
+    {
+      "path": "utility/coin-flip.lua",
+      "title": "Coin Flip",
+      "description": "Flip a virtual coin with a short heads/tails animation.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/coin-flip.md",
+      "image": "utility/coin-flip.jpg"
+    },
+    {
+      "path": "utility/dice-roller.lua",
+      "title": "Dice Roller",
+      "description": "Roll a die of your chosen type and see the result with a rolling animation.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/dice-roller.md",
+      "image": "utility/dice-roller.jpg"
+    },
+    {
+      "path": "utility/led-resistor.lua",
+      "title": "LED Resistor",
+      "description": "Calculate the series resistor for an LED from supply voltage, forward voltage, and target current.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/led-resistor.md",
+      "image": "utility/led-resistor.jpg"
+    },
+    {
+      "path": "utility/magic-8ball.lua",
+      "title": "Magic 8-Ball",
+      "description": "Ask a question, shake the ball, and get a classic Magic 8-Ball answer.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/magic-8ball.md",
+      "image": "utility/magic-8ball.jpg"
+    },
+    {
+      "path": "utility/metronome.lua",
+      "title": "Metronome",
+      "description": "Steady 4/4 metronome with an accented downbeat and adjustable tempo.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/metronome.md",
+      "image": "utility/metronome.jpg"
+    },
+    {
+      "path": "utility/morse/generator.lua",
+      "title": "Morse Generator",
+      "description": "Type text and transmit it as Morse code with a flashing lamp and matching tones.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/morse/generator.md",
+      "image": "utility/morse/generator.jpg"
+    },
+    {
+      "path": "utility/morse/simulator.lua",
+      "title": "Morse Simulator",
+      "description": "Tap out Morse with the buttons and look up the pattern you keyed.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/morse/simulator.md",
+      "image": "utility/morse/simulator.jpg"
+    },
+    {
+      "path": "utility/morse/training.lua",
+      "title": "Morse Trainer",
+      "description": "Browse the Morse alphabet one letter at a time, each with audio playback.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/morse/training.md",
+      "image": "utility/morse/training.jpg"
+    },
+    {
+      "path": "utility/ohms-law.lua",
+      "title": "Ohm's Law",
+      "description": "Solve for voltage, current, resistance, or power given any two of the four.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/ohms-law.md",
+      "image": "utility/ohms-law.jpg"
+    },
+    {
+      "path": "utility/resistor.lua",
+      "title": "Resistor Calculator",
+      "description": "Read a 4-band resistor's value and tolerance by dialing in each band colour.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/resistor.md",
+      "image": "utility/resistor.jpg"
+    },
+    {
+      "path": "utility/scoreboard.lua",
+      "title": "Scoreboard",
+      "description": "Unified high-score viewer that reads every game’s save file under /unigeek/games.",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/scoreboard.md",
+      "image": "utility/scoreboard.jpg"
+    },
+    {
+      "path": "utility/stopwatch.lua",
+      "title": "Stopwatch",
+      "description": "MM:SS.cc stopwatch with lap recording (in-memory only).",
+      "category": "Utility",
+      "author": "lshaf",
+      "doc": "utility/stopwatch.md",
+      "image": "utility/stopwatch.jpg"
+    }
+  ]
+}

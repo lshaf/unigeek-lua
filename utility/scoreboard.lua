@@ -1,3 +1,9 @@
+--[[
+@title Scoreboard
+@description Unified high-score viewer that reads every game’s save file under /unigeek/games.
+@category Utility
+@author lshaf
+]]
 -- scoreboard.lua — Unified high-score viewer
 -- Reads every game's save file under /unigeek/games/ and lists each one's
 -- best result on a single screen. Games store scores in different shapes

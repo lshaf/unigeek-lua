@@ -1,3 +1,9 @@
+--[[
+@title Magic 8-Ball
+@description Ask a question, shake the ball, and get a classic Magic 8-Ball answer.
+@category Utility
+@author lshaf
+]]
 -- magic-8ball.lua — Magic 8-Ball
 -- Ask a question in your head, press OK to shake the ball, and one of
 -- the 20 classic answers is revealed. Tinted green/yellow/red by tone.

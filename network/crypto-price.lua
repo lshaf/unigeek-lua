@@ -1,3 +1,9 @@
+--[[
+@title Crypto Price Tracker
+@description Live BTC/USD and ETH/USD prices from the CoinGecko API, refreshed over WiFi.
+@category Network
+@author lshaf
+]]
 -- crypto-price.lua — Crypto Price Tracker
 -- Fetches BTC/USD and ETH/USD from the CoinGecko public API every
 -- 60 s and displays them. If WiFi isn't already up, the script

@@ -1,3 +1,9 @@
+--[[
+@title Space Invaders
+@description Space Invader clone — move your ship and shoot down the descending alien waves.
+@category Game
+@author lshaf
+]]
 -- invader.lua — Space Invader clone for the UniGeek Lua Runner
 --   UP    / LEFT  : move ship left
 --   DOWN  / RIGHT : move ship right

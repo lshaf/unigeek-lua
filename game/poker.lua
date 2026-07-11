@@ -1,3 +1,9 @@
+--[[
+@title Video Poker
+@description Jacks-or-Better 5-card draw video poker with hold, draw, and credit betting.
+@category Game
+@author lshaf
+]]
 -- poker.lua — Video Poker (Jacks or Better, 5-card draw)
 -- A 5-credit bet is taken each deal. Hold the cards you want, draw new ones
 -- for the rest, and you're paid for the resulting hand. Payouts (per bet):

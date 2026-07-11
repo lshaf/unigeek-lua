@@ -1,3 +1,9 @@
+--[[
+@title Mastermind
+@description Code-breaker: crack the secret 4-digit code (digits 1–6) using peg feedback.
+@category Game
+@author lshaf
+]]
 -- mastermind.lua — Mastermind (code-breaker)
 -- The device picks a secret 4-digit code where each digit is 1..6.
 -- Enter your guesses one digit at a time; after each full guess the

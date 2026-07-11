@@ -1,3 +1,9 @@
+--[[
+@title Morse Simulator
+@description Tap out Morse with the buttons and look up the pattern you keyed.
+@category Utility
+@author lshaf
+]]
 -- simulator.lua — Morse Code Simulator
 -- Tap out morse with the buttons; press OK to look the pattern up.
 --

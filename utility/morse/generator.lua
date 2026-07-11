@@ -1,3 +1,9 @@
+--[[
+@title Morse Generator
+@description Type text and transmit it as Morse code with a flashing lamp and matching tones.
+@category Utility
+@author lshaf
+]]
 -- generator.lua — Morse Code Generator
 -- Enter text via on-screen keyboard, transmit it as morse code with
 -- a flashing "lamp" and matching audio. OK = send again, BACK = exit.

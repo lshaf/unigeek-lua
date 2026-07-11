@@ -1,0 +1,39 @@
+name: Build catalog
+
+# Regenerates apps.json from the .lua headers on every push that touches a
+# script, the map, or the generator. Commits the result back so the website
+# always reads an up-to-date index without any manual upkeep.
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**/*.lua'
+      - 'map.txt'
+      - 'tools/build-catalog.mjs'
+      - '.github/workflows/catalog.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Generate apps.json
+        run: node tools/build-catalog.mjs
+      - name: Commit if changed
+        run: |
+          if [ -n "$(git status --porcelain apps.json)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add apps.json
+            git commit -m "chore: regenerate apps.json"
+            git push
+          else
+            echo "apps.json already up to date"
+          fi

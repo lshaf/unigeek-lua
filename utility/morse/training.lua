@@ -1,3 +1,9 @@
+--[[
+@title Morse Trainer
+@description Browse the Morse alphabet one letter at a time, each with audio playback.
+@category Utility
+@author lshaf
+]]
 -- training.lua — Morse Code Trainer / Reference
 -- Browse the morse alphabet one letter at a time. Each entry plays
 -- the audio with a synced "lamp" and highlighted dot/dash strip.
